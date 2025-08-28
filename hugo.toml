@@ -1,7 +1,9 @@
-baseurl      = "localhost"
-title        = "My Blog"
+baseURL = "https://sufferwellblog.pages.dev/"
 languageCode = "en-us"
-theme        = "hello-friend-ng"
+title = "SufferWell"
+theme = "hello-friend-ng"
+# optional but helpful
+canonifyURLs = true
 [pagination]
   pagerSize = 10
 
