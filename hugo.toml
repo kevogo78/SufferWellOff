@@ -58,3 +58,8 @@ canonifyURLs = true
     identifier = "blog"
     name       = "Blog"
     url        = "/posts"
+ [[menu.main]]
+    identifier = "shop"
+    name       = "Shop"
+    url        = "https://shop.sufferwelloff.com"
+    weight     = 2
