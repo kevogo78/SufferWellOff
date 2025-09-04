@@ -61,5 +61,5 @@ canonifyURLs = true
  [[menu.main]]
     identifier = "shop"
     name       = "Shop"
-    url        = "https://shop.sufferwelloff.com"
+    url        = "https://sufferwell-llc.launchcart.store/shop"
     weight     = 2
