@@ -1,1 +1,22 @@
 
+{{ define "main" }}
+<link rel="stylesheet" href="/tailr-ai/tailr.css">
+
+<div class="tailr-container">
+    <h1>Tailr AI</h1>
+    <p>Your free AI-powered resume builder & tailor using Groq Llama models.</p>
+
+    <div class="mode-buttons">
+        <button id="builderBtn">Resume Builder</button>
+        <button id="tailorBtn">Resume Tailor</button>
+    </div>
+
+    <textarea id="inputText" placeholder="Paste your resume or job info..."></textarea>
+
+    <button id="runBtn">Run Tailr AI</button>
+
+    <pre id="output"></pre>
+</div>
+
+<script src="/tailr-ai/tailr.js"></script>
+{{ end }}
