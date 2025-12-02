@@ -54,7 +54,7 @@ canonifyURLs = true
     # alt = "Your example logo alt text"
 
   # And you can even create generic menu
-  [[menu.main]]
+ [[menu.main]]
     identifier = "blog"
     name       = "Blog"
     url        = "/posts"
@@ -63,3 +63,8 @@ canonifyURLs = true
     name       = "Shop"
     url        = "https://sufferwell-llc.launchcart.store/shop"
     weight     = 2
+ [[menu.main]]
+    identifier = "tailr-ai"
+    name       = "Tailr-AI"
+    url        = "/tailr-ai"
+    weight     = 3
