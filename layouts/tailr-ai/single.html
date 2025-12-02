@@ -1,22 +1,77 @@
-
 {{ define "main" }}
 <link rel="stylesheet" href="/tailr-ai/tailr.css">
 
-<div class="tailr-container">
+<div class="tailr-page">
+  <header class="tailr-header">
     <h1>Tailr AI</h1>
-    <p>Your free AI-powered resume builder & tailor using Groq Llama models.</p>
+    <p class="tagline">
+      Free AI-powered resume builder & tailoring assistant, running on Groq.
+    </p>
+  </header>
 
-    <div class="mode-buttons">
-        <button id="builderBtn">Resume Builder</button>
-        <button id="tailorBtn">Resume Tailor</button>
+  <section class="tailr-card">
+    <h2 class="section-title">1. Choose a mode</h2>
+    <div class="mode-buttons" id="modeButtons">
+      <button class="mode-btn active" data-mode="builder">Resume Builder</button>
+      <button class="mode-btn" data-mode="tailor">Resume Tailor</button>
+      <button class="mode-btn" data-mode="ats">ATS Optimize</button>
+      <button class="mode-btn" data-mode="match">Match Job Description</button>
+    </div>
+    <p class="mode-hint" id="modeHint">
+      Resume Builder: Paste raw info about yourself and let Tailr AI draft a full resume.
+    </p>
+  </section>
+
+  <section class="tailr-grid">
+    <div class="tailr-card">
+      <h2 class="section-title">2. Your resume / experience</h2>
+      <textarea
+        id="resumeInput"
+        placeholder="Paste your current resume OR bullet points about your experience, skills, education, and projects…"
+      ></textarea>
+      <div class="field-meta">
+        <span id="resumeCount">0 characters</span>
+      </div>
     </div>
 
-    <textarea id="inputText" placeholder="Paste your resume or job info..."></textarea>
+    <div class="tailr-card" id="jobCard" style="display:none;">
+      <h2 class="section-title">3. Job description (for Tailor / Match / ATS)</h2>
+      <textarea
+        id="jobInput"
+        placeholder="Paste the job description here so Tailr AI can align your resume to it…"
+      ></textarea>
+      <div class="field-meta">
+        <span id="jobCount">0 characters</span>
+      </div>
+    </div>
+  </section>
 
-    <button id="runBtn">Run Tailr AI</button>
+  <section class="tailr-card">
+    <h2 class="section-title">4. Run Tailr AI</h2>
+    <div class="actions-row">
+      <button id="runBtn" class="primary-btn">Generate</button>
+      <span id="statusText" class="status-text">Idle</span>
+    </div>
 
-    <pre id="output"></pre>
+    <h3 class="section-title output-title">Result</h3>
+    <div class="output-toolbar">
+      <button id="copyBtn" class="ghost-btn">Copy Text</button>
+      <button id="pdfBtn" class="ghost-btn">Download as PDF</button>
+    </div>
+    <pre id="output" class="output-box">Your Tailr AI result will appear here…</pre>
+  </section>
+
+  <section class="tailr-footer">
+    <p>
+      💡 Tip: Always review AI output for accuracy before submitting your resume.
+    </p>
+    <p class="footer-small">
+      Built with ❤️ using Hugo, Cloudflare Pages, and Groq.
+    </p>
+  </section>
 </div>
 
+<!-- PDF library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="/tailr-ai/tailr.js"></script>
 {{ end }}
