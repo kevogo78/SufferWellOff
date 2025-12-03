@@ -104,27 +104,28 @@ Return ONLY the final resume in clean text with clear sections: Summary, Skills,
   }
 
   try {
-    const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.GROQ_API_KEY}`,
-        "Content-Type": "application/json"
+  const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${env.GROQ_API_KEY}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    model: "llama-3.1-70b-versatile",
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are Tailr AI, a resume assistant for students and early-career professionals. Be concise, structured, and practical."
       },
-      body: JSON.stringify({
-        model: "llama3-70b-8192",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are Tailr AI, a resume assistant for students and early-career professionals. Be concise, structured, and practical."
-          },
-          {
-            role: "user",
-            content: userPrompt
-          }
-        ]
-      })
-    });
+      {
+        role: "user",
+        content: userPrompt
+      }
+    ]
+  })
+});
+
 
     const text = await groqRes.text();
 
