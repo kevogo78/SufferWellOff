@@ -111,7 +111,7 @@ Return ONLY the final resume in clean text with clear sections: Summary, Skills,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "model: llama3-70b-8192",
+        model: "llama3-70b-8192",
         messages: [
           {
             role: "system",
