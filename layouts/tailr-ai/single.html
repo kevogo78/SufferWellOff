@@ -1367,20 +1367,14 @@ document.getElementById("btn-master-clear").onclick = () => {
 // ================================
 document.getElementById("btn-master-ai").onclick = async () => {
   const payload = {
-    job_title: trJobTitle.value || null,
-    job_description: trJobDesc.value || null,
-    job_url: trJobUrl.value || null,
-    style: "auto",
-    source_type: "current",
-    master_resume: {
-      name: mrName.value,
-      contact: mrContact.value,
-      summary: mrSummary.value,
-      experience: mrExperience.value,
-      education: mrEducation.value,
-      skills: mrSkills.value,
-      projects: mrProjects.value,
-    },
+    name: mrName.value,
+    title: mrTitle.value,
+    contact: mrContact.value,
+    summary: mrSummary.value,
+    experience: mrExperience.value,
+    education: mrEducation.value,
+    skills: mrSkills.value,
+    projects: mrProjects.value
   };
 
   const data = await postJSON("/master/generate-ai", payload);
@@ -1393,7 +1387,6 @@ document.getElementById("btn-master-ai").onclick = async () => {
 
   refreshMasterPreview();
 };
-
 
 // ================================
 // MASTER RESUME — EXPORT TO GOOGLE DOCS
