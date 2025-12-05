@@ -1,4 +1,4 @@
-const DEFAULT_WRITER_MODEL = "llama-3-70b"; // replace with your exact Groq model id
+const DEFAULT_WRITER_MODEL = "llama3-70b-8192";
 
 async function callGroq(env, { system, user, model = DEFAULT_WRITER_MODEL }) {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -19,12 +19,31 @@ async function callGroq(env, { system, user, model = DEFAULT_WRITER_MODEL }) {
 
   if (!res.ok) {
     const text = await res.text();
-    console.error("Groq error:", res.status, text);
+    console.error("Groq master-generate-ai error:", res.status, text);
     throw new Error("Groq API error");
   }
 
   const data = await res.json();
   return data.choices[0].message.content;
+}
+
+function safeParseJson(text, fallback) {
+  try {
+    // try direct parse first
+    return JSON.parse(text);
+  } catch {
+    // try to extract first {...last}
+    const first = text.indexOf("{");
+    const last = text.lastIndexOf("}");
+    if (first !== -1 && last !== -1 && last > first) {
+      try {
+        return JSON.parse(text.slice(first, last + 1));
+      } catch {
+        console.warn("safeParseJson inner parse failed");
+      }
+    }
+  }
+  return fallback;
 }
 
 export async function onRequestPost(context) {
@@ -44,14 +63,14 @@ export async function onRequestPost(context) {
 
   const systemPrompt = `
 You are an expert technical resume writer for cybersecurity, IT, software, and AI roles.
-You ALWAYS:
-- preserve factual content (no fabrication)
-- quantify impact where information exists
-- use concise bullet points
-- keep everything ATS-safe (no tables, no icons, no fancy symbols)
-- return STRICTLY valid JSON only.
 
-You are improving a MASTER RESUME (all roles, all projects).
+Your job: improve a MASTER RESUME draft (all roles, all projects), while:
+- strictly preserving truth (no fabricating employers, titles, or tools)
+- making bullet points clear, quantified where possible, and impact-focused
+- keeping everything ATS-safe (no tables, no emojis, no fancy symbols)
+- returning ONLY valid JSON (no commentary).
+
+Write in clean US English, concise and professional.
 `;
 
   const userPrompt = `
@@ -76,7 +95,7 @@ ${skills || ""}
 Projects:
 ${projects || ""}
 
-Please improve the text while preserving truth and relevance.
+Improve the text while preserving the underlying facts.
 
 Return JSON with EXACTLY these keys:
 {
@@ -89,21 +108,16 @@ Return JSON with EXACTLY these keys:
 `;
 
   const raw = await callGroq(env, { system: systemPrompt, user: userPrompt });
-  let parsed;
 
-  try {
-    parsed = JSON.parse(raw);
-  } catch (e) {
-    console.error("Failed to parse JSON from Groq:", raw);
-    // fallback: send original back
-    parsed = {
-      summary: summary || "",
-      experience: experience || "",
-      education: education || "",
-      skills: skills || "",
-      projects: projects || "",
-    };
-  }
+  const fallback = {
+    summary: summary || "",
+    experience: experience || "",
+    education: education || "",
+    skills: skills || "",
+    projects: projects || "",
+  };
+
+  const parsed = safeParseJson(raw, fallback);
 
   return Response.json(parsed);
 }
