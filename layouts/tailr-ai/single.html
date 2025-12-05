@@ -1249,285 +1249,333 @@
   </div>
 
   <script>
-    // ====== NAV TOGGLE ======
-    const navButtons = document.querySelectorAll(".nav-button");
-    const toolPanels = document.querySelectorAll(".tool-panel");
+// ========================
+// NAV MENU SWITCHING
+// ========================
+const navButtons = document.querySelectorAll(".nav-button");
+const toolPanels = document.querySelectorAll(".tool-panel");
 
-    navButtons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const tool = btn.dataset.tool;
+navButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const tool = btn.dataset.tool;
 
-        navButtons.forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
+    navButtons.forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
 
-        toolPanels.forEach((panel) => {
-          if (panel.id === `tool-${tool}`) {
-            panel.classList.add("active");
-          } else {
-            panel.classList.remove("active");
-          }
-        });
-      });
+    toolPanels.forEach((panel) => {
+      panel.id === `tool-${tool}`
+        ? panel.classList.add("active")
+        : panel.classList.remove("active");
     });
+  });
+});
 
-    // ====== MASTER RESUME PREVIEW LOGIC ======
-    const mrName = document.getElementById("mr-name");
-    const mrTitle = document.getElementById("mr-title");
-    const mrContact = document.getElementById("mr-contact");
-    const mrSummary = document.getElementById("mr-summary");
-    const mrExperience = document.getElementById("mr-experience");
-    const mrEducation = document.getElementById("mr-education");
-    const mrSkills = document.getElementById("mr-skills");
-    const mrProjects = document.getElementById("mr-projects");
 
-    const mrPreviewName = document.getElementById("mr-preview-name");
-    const mrPreviewContact = document.getElementById("mr-preview-contact");
-    const mrPreviewSummary = document.getElementById("mr-preview-summary");
-    const mrPreviewExperience = document.getElementById("mr-preview-experience");
-    const mrPreviewEducation = document.getElementById("mr-preview-education");
-    const mrPreviewSkills = document.getElementById("mr-preview-skills");
-    const mrPreviewProjects = document.getElementById("mr-preview-projects");
-    const mrPreviewMeta = document.getElementById("mr-preview-meta");
+// ========================
+// HELPER FUNCTIONS
+// ========================
+async function postJSON(url, data) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return await res.json();
+}
 
-    function simpleEscape(text) {
-      return text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-    }
+function downloadFile(blob, filename) {
+  const link = document.createElement("a");
+  link.href = window.URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+}
 
-    function convertBullets(text) {
-      if (!text.trim()) return "";
-      const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
-      if (!lines.length) return "";
-      return (
-        "<ul class='preview-bullets'>" +
-        lines
-          .map((line) => {
-            const clean = line.replace(/^[-•\u2022]\s*/, "").trim();
-            return `<li>${simpleEscape(clean)}</li>`;
-          })
-          .join("") +
-        "</ul>"
-      );
-    }
 
-    function refreshMasterPreview() {
-      const nameVal = mrName.value.trim() || "Your Name Here";
-      const titleVal = mrTitle.value.trim();
-      const contactVal = mrContact.value.trim() ||
-        "City, ST • email@domain.com • (000) 000-0000 • linkedin.com/in/you • github.com/you";
+// ========================
+// MASTER RESUME — PREVIEW
+// ========================
+const mrName = document.getElementById("mr-name");
+const mrTitle = document.getElementById("mr-title");
+const mrContact = document.getElementById("mr-contact");
+const mrSummary = document.getElementById("mr-summary");
+const mrExperience = document.getElementById("mr-experience");
+const mrEducation = document.getElementById("mr-education");
+const mrSkills = document.getElementById("mr-skills");
+const mrProjects = document.getElementById("mr-projects");
 
-      mrPreviewName.textContent = nameVal.toUpperCase();
-      mrPreviewContact.textContent = contactVal;
+const mrPreviewName = document.getElementById("mr-preview-name");
+const mrPreviewContact = document.getElementById("mr-preview-contact");
+const mrPreviewSummary = document.getElementById("mr-preview-summary");
+const mrPreviewExperience = document.getElementById("mr-preview-experience");
+const mrPreviewEducation = document.getElementById("mr-preview-education");
+const mrPreviewSkills = document.getElementById("mr-preview-skills");
+const mrPreviewProjects = document.getElementById("mr-preview-projects");
+const mrPreviewMeta = document.getElementById("mr-preview-meta");
 
-      const summaryVal = mrSummary.value.trim();
-      mrPreviewSummary.textContent =
-        summaryVal ||
-        "Brief 2–4 sentence summary describing who you are, your strongest skills, and the type of role you’re targeting.";
+function refreshMasterPreview() {
+  mrPreviewName.textContent = (mrName.value || "YOUR NAME HERE").toUpperCase();
+  mrPreviewContact.textContent =
+    mrContact.value ||
+    "City, ST • email@domain.com • (000) 000-0000 • linkedin.com/in/you";
 
-      const expVal = mrExperience.value.trim();
-      if (expVal) {
-        mrPreviewExperience.innerHTML = convertBullets(expVal);
-      } else {
-        mrPreviewExperience.innerHTML = `
-          <div class="preview-item">
-            <div class="preview-item-title">Role Title — Company</div>
-            <div class="preview-item-meta">Location • Dates</div>
-            <ul class="preview-bullets">
-              <li>Quantify an impact: created X, improved Y%, reduced Z.</li>
-              <li>Mention tools / technologies used.</li>
-            </ul>
-          </div>`;
-      }
+  mrPreviewSummary.textContent =
+    mrSummary.value || "Your professional summary will appear here.";
 
-      const eduVal = mrEducation.value.trim();
-      mrPreviewEducation.textContent =
-        eduVal || "B.S. in Something — School Name, City, ST (Month Year)";
+  mrPreviewExperience.textContent =
+    mrExperience.value || "Experience section will appear here.";
 
-      const skillsVal = mrSkills.value.trim();
-      mrPreviewSkills.textContent =
-        skillsVal ||
-        "List skills in categories: Languages | Tools | Cloud | Security | Certifications.";
+  mrPreviewEducation.textContent =
+    mrEducation.value || "Education section will appear here.";
 
-      const projVal = mrProjects.value.trim();
-      mrPreviewProjects.textContent =
-        projVal ||
-        "Highlight 2–4 projects or achievements that prove your skills with measurable results.";
+  mrPreviewSkills.textContent =
+    mrSkills.value || "Skills appear here.";
 
-      mrPreviewMeta.textContent = "Preview updated — safe to export and edit.";
-    }
+  mrPreviewProjects.textContent =
+    mrProjects.value || "Project highlights will appear here.";
 
-    document.getElementById("btn-master-preview").addEventListener("click", refreshMasterPreview);
+  mrPreviewMeta.textContent = "Preview updated — ready to export.";
+}
 
-    document.getElementById("btn-master-clear").addEventListener("click", () => {
-      [mrName, mrTitle, mrContact, mrSummary, mrExperience, mrEducation, mrSkills, mrProjects].forEach(
-        (el) => (el.value = "")
-      );
-      refreshMasterPreview();
-    });
+document.getElementById("btn-master-preview").onclick = refreshMasterPreview;
 
-    // Stub for Groq-powered AI
-    document.getElementById("btn-master-ai").addEventListener("click", () => {
-      alert(
-        "This is where you’ll connect your Groq API.\n\n" +
-          "Frontend hook: #btn-master-ai\n" +
-          "TODO: Send current form fields to your backend route, call Groq, then replace fields with AI-enhanced content."
-      );
-    });
+document.getElementById("btn-master-clear").onclick = () => {
+  [
+    mrName,
+    mrTitle,
+    mrContact,
+    mrSummary,
+    mrExperience,
+    mrEducation,
+    mrSkills,
+    mrProjects
+  ].forEach((el) => (el.value = ""));
+  refreshMasterPreview();
+};
 
-    // ====== TAILOR RESUME LOGIC ======
-    const trSource = document.getElementById("tr-source");
-    const trResumeWrapper = document.getElementById("tr-resume-wrapper");
-    const trJobTitle = document.getElementById("tr-job-title");
-    const trJobDesc = document.getElementById("tr-job-desc");
 
-    const trPreviewName = document.getElementById("tr-preview-name");
-    const trPreviewContact = document.getElementById("tr-preview-contact");
-    const trPreviewSummary = document.getElementById("tr-preview-summary");
-    const trPreviewSkills = document.getElementById("tr-preview-skills");
-    const trPreviewExperience = document.getElementById("tr-preview-experience");
-    const trPreviewExtras = document.getElementById("tr-preview-extras");
-    const trMatchScoreLabel = document.getElementById("tr-match-score");
+// ================================
+// MASTER RESUME — AI GENERATION
+// ================================
+document.getElementById("btn-master-ai").onclick = async () => {
+  const payload = {
+    name: mrName.value,
+    title: mrTitle.value,
+    contact: mrContact.value,
+    summary: mrSummary.value,
+    experience: mrExperience.value,
+    education: mrEducation.value,
+    skills: mrSkills.value,
+    projects: mrProjects.value,
+  };
 
-    trSource.addEventListener("change", () => {
-      trResumeWrapper.style.display = trSource.value === "paste" ? "block" : "none";
-    });
+  const data = await postJSON("/api/master/generate-ai", payload);
 
-    document.getElementById("btn-tailor-analyze").addEventListener("click", () => {
-      // Stubbed logic: simple placeholder using current master + job title
-      refreshMasterPreview(); // make sure master is up to date
+  mrSummary.value = data.summary;
+  mrExperience.value = data.experience;
+  mrEducation.value = data.education;
+  mrSkills.value = data.skills;
+  mrProjects.value = data.projects;
 
-      const jobTitleText = trJobTitle.value.trim() || "Target Role";
-      const descText = trJobDesc.value.trim();
+  refreshMasterPreview();
+};
 
-      trPreviewName.textContent = mrPreviewName.textContent;
-      trPreviewContact.textContent = mrPreviewContact.textContent;
 
-      trPreviewSummary.textContent =
-        descText
-          ? `Tailored for ${jobTitleText}: This version emphasizes the experience, tools, and accomplishments that map most directly to the job description you provided.`
-          : "Once you paste a job description and run Tailor, this section will call out why you’re a strong fit for that specific posting.";
+// ================================
+// MASTER RESUME — EXPORT TO DOCS
+// ================================
+document.getElementById("btn-master-export-docs").onclick = async () => {
+  const payload = {
+    resume: {
+      name: mrName.value,
+      contact: mrContact.value,
+      summary: mrSummary.value,
+      experience: mrExperience.value,
+      education: mrEducation.value,
+      skills: mrSkills.value,
+      projects: mrProjects.value,
+    },
+  };
 
-      trPreviewSkills.textContent =
-        "Skills will be reordered and filtered to highlight the technologies, frameworks, and responsibilities repeated in the job description.";
+  const data = await postJSON("/api/master/export-docs", payload);
+  window.open(data.url, "_blank");
+};
 
-      trPreviewExperience.textContent =
-        "Experience bullets will be filtered to focus on security, automation, incident response, or other themes in the posting.";
 
-      trPreviewExtras.textContent =
-        "Use this tailored version as a starting point. Add concrete metrics and stories from your real experience before applying.";
+// ================================
+// MASTER RESUME — EXPORT TO WORD
+// ================================
+document.getElementById("btn-master-export-word").onclick = async () => {
+  const payload = {
+    resume: {
+      name: mrName.value,
+      contact: mrContact.value,
+      summary: mrSummary.value,
+      experience: mrExperience.value,
+      education: mrEducation.value,
+      skills: mrSkills.value,
+      projects: mrProjects.value,
+    },
+  };
 
-      // Dummy match score (static placeholder for now)
-      trMatchScoreLabel.textContent = descText ? "72" : "–";
+  const res = await fetch("/api/master/export-word", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 
-      alert(
-        "AI tailoring will go here.\n\n" +
-          "Frontend hook: #btn-tailor-analyze\n" +
-          "TODO: Send job description + master resume to backend (Groq), then fill the Tailored Resume preview with AI output and calculated match score."
-      );
-    });
+  const blob = await res.blob();
+  downloadFile(blob, "MasterResume.docx");
+};
 
-    // Export stubs for Tailor
-    document.getElementById("btn-tailor-export-docs").addEventListener("click", () => {
-      alert(
-        "Export to Google Docs (Tailored Resume)\n\n" +
-          "Frontend hook: #btn-tailor-export-docs\n" +
-          "TODO: send structured resume data to your backend, generate .docx or use Google Docs API, then redirect user to the doc."
-      );
-    });
 
-    document.getElementById("btn-tailor-export-word").addEventListener("click", () => {
-      alert(
-        "Export to Word (.docx) (Tailored Resume)\n\n" +
-          "Frontend hook: #btn-tailor-export-word\n" +
-          "TODO: make the backend respond with a .docx download for the tailored resume."
-      );
-    });
+// ================================
+// TAILOR RESUME — ANALYZE
+// ================================
+const trJobTitle = document.getElementById("tr-job-title");
+const trJobDesc = document.getElementById("tr-job-desc");
 
-    // ====== ATS OPTIMIZER LOGIC ======
-    const atsResume = document.getElementById("ats-resume");
-    const atsResults = document.getElementById("ats-results");
-    const atsScoreLabel = document.getElementById("ats-score-label");
+const trPreviewName = document.getElementById("tr-preview-name");
+const trPreviewContact = document.getElementById("tr-preview-contact");
+const trPreviewSummary = document.getElementById("tr-preview-summary");
+const trPreviewSkills = document.getElementById("tr-preview-skills");
+const trPreviewExperience = document.getElementById("tr-preview-experience");
+const trPreviewExtras = document.getElementById("tr-preview-extras");
+const trMatchScoreLabel = document.getElementById("tr-match-score");
 
-    document.getElementById("btn-ats-scan").addEventListener("click", () => {
-      const text = atsResume.value || "";
-      const lengthScore = Math.min(100, Math.max(20, text.length / 10)); // crude placeholder
-      atsScoreLabel.textContent = `${Math.round(lengthScore)} / 100 (demo)`;
+document.getElementById("btn-tailor-analyze").onclick = async () => {
+  refreshMasterPreview();
 
-      atsResults.innerHTML =
-        "<strong>Demo ATS Scan Summary:</strong>" +
-        "<ul class='results-list'>" +
-        "<li>Check for multiple columns, tables, or text boxes — keep layout simple and single-column.</li>" +
-        "<li>Use clear headings like “Experience”, “Education”, and “Skills”.</li>" +
-        "<li>Avoid images, icons, and complex graphics.</li>" +
-        "<li>Ensure dates and job titles follow consistent patterns.</li>" +
-        "</ul>" +
-        "<p style='margin-top:6px;'>Backend ATS logic will score structure and keyword coverage more precisely.</p>";
+  const payload = {
+    job_title: trJobTitle.value,
+    job_description: trJobDesc.value,
+    source_type: "current",
+    master_resume: {
+      name: mrName.value,
+      contact: mrContact.value,
+      summary: mrSummary.value,
+      experience: mrExperience.value,
+      education: mrEducation.value,
+      skills: mrSkills.value,
+      projects: mrProjects.value,
+    },
+  };
 
-      alert(
-        "ATS scan logic will go here.\n\n" +
-          "Frontend hook: #btn-ats-scan\n" +
-          "TODO: send pasted resume to backend, run ATS checks, compute a score, and return detailed issues."
-      );
-    });
+  const data = await postJSON("/api/tailor/analyze", payload);
 
-    // ====== MATCH SCORE LOGIC ======
-    const matchResume = document.getElementById("match-resume");
-    const matchJob = document.getElementById("match-job");
-    const matchScoreLabel = document.getElementById("match-score-label");
-    const matchResults = document.getElementById("match-results");
+  trPreviewName.textContent = mrPreviewName.textContent;
+  trPreviewContact.textContent = mrPreviewContact.textContent;
+  trPreviewSummary.textContent = data.summary;
+  trPreviewSkills.textContent = data.skills;
+  trPreviewExperience.textContent = data.experience;
+  trPreviewExtras.textContent = data.extras;
+  trMatchScoreLabel.textContent = data.match_score;
+};
 
-    document.getElementById("btn-match-score").addEventListener("click", () => {
-      const resumeText = matchResume.value || "";
-      const jobText = matchJob.value || "";
 
-      if (!resumeText.trim() || !jobText.trim()) {
-        alert("Please paste both a resume and a job description to calculate a match score.");
-        return;
-      }
+// ======================================
+// TAILOR RESUME — EXPORT TO GOOGLE DOCS
+// ======================================
+document.getElementById("btn-tailor-export-docs").onclick = async () => {
+  const payload = {
+    resume: {
+      name: trPreviewName.textContent,
+      contact: trPreviewContact.textContent,
+      summary: trPreviewSummary.textContent,
+      skills: trPreviewSkills.textContent,
+      experience: trPreviewExperience.textContent,
+      extras: trPreviewExtras.textContent,
+    },
+  };
 
-      // Very simple placeholder score: compare lengths
-      const ratio = Math.min(1, resumeText.length / jobText.length);
-      const score = Math.round(40 + ratio * 60); // 40–100
+  const data = await postJSON("/api/tailor/export-docs", payload);
+  window.open(data.url, "_blank");
+};
 
-      matchScoreLabel.textContent = score.toString();
 
-      matchResults.innerHTML =
-        "<strong>Demo Match Analysis:</strong>" +
-        "<ul class='results-list'>" +
-        "<li>Keyword overlap, responsibilities, and tools will be highlighted here.</li>" +
-        "<li>Tailr-AI will show what you cover well and what you’re missing.</li>" +
-        "<li>Use this score to decide if you should tailor further before applying.</li>" +
-        "</ul>" +
-        "<p style='margin-top:6px;'>Backend logic will use real NLP with Groq to compare skills, duties, and seniority level.</p>";
+// ======================================
+// TAILOR RESUME — EXPORT TO WORD
+// ======================================
+document.getElementById("btn-tailor-export-word").onclick = async () => {
+  const payload = {
+    resume: {
+      name: trPreviewName.textContent,
+      contact: trPreviewContact.textContent,
+      summary: trPreviewSummary.textContent,
+      skills: trPreviewSkills.textContent,
+      experience: trPreviewExperience.textContent,
+      extras: trPreviewExtras.textContent,
+    },
+  };
 
-      alert(
-        "Real match scoring will go here.\n\n" +
-          "Frontend hook: #btn-match-score\n" +
-          "TODO: send resume + job description to backend, call Groq, and compute a semantic match score + detailed breakdown."
-      );
-    });
+  const res = await fetch("/api/tailor/export-word", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 
-    // ====== EXPORT STUBS FOR MASTER RESUME ======
-    document.getElementById("btn-master-export-docs").addEventListener("click", () => {
-      alert(
-        "Export to Google Docs (Master Resume)\n\n" +
-          "Frontend hook: #btn-master-export-docs\n" +
-          "TODO: send structured master resume data to backend, generate a Google Doc via API, and redirect user to it."
-      );
-    });
+  const blob = await res.blob();
+  downloadFile(blob, "TailoredResume.docx");
+};
 
-    document.getElementById("btn-master-export-word").addEventListener("click", () => {
-      alert(
-        "Export to Word (.docx) (Master Resume)\n\n" +
-          "Frontend hook: #btn-master-export-word\n" +
-          "TODO: call backend endpoint that returns a .docx file download."
-      );
-    });
 
-    // Initial preview
-    refreshMasterPreview();
-  </script>
+// ================================
+// ATS SCAN
+// ================================
+const atsResume = document.getElementById("ats-resume");
+const atsScoreLabel = document.getElementById("ats-score-label");
+const atsResults = document.getElementById("ats-results");
+
+document.getElementById("btn-ats-scan").onclick = async () => {
+  const data = await postJSON("/api/ats/scan", {
+    resume_text: atsResume.value,
+  });
+
+  atsScoreLabel.textContent = data.score;
+
+  atsResults.innerHTML = `
+    <strong>Issues Found:</strong>
+    <ul>${data.issues.map(i => `<li>${i}</li>`).join("")}</ul>
+    <strong>Suggestions:</strong>
+    <ul>${data.suggestions.map(s => `<li>${s}</li>`).join("")}</ul>
+  `;
+};
+
+
+// ================================
+// MATCH SCORE
+// ================================
+const matchResume = document.getElementById("match-resume");
+const matchJob = document.getElementById("match-job");
+const matchScoreLabel = document.getElementById("match-score-label");
+const matchResults = document.getElementById("match-results");
+
+document.getElementById("btn-match-score").onclick = async () => {
+  const payload = {
+    resume_text: matchResume.value,
+    job_description: matchJob.value,
+  };
+
+  const data = await postJSON("/api/match/score", payload);
+
+  matchScoreLabel.textContent = data.score;
+
+  matchResults.innerHTML = `
+    <strong>Matched Keywords:</strong>
+    <ul>${data.matched_keywords.map(k => `<li>${k}</li>`).join("")}</ul>
+
+    <strong>Missing Keywords:</strong>
+    <ul>${data.missing_keywords.map(k => `<li>${k}</li>`).join("")}</ul>
+
+    <strong>Recommendations:</strong>
+    <ul>${data.recommendations.map(r => `<li>${r}</li>`).join("")}</ul>
+  `;
+};
+
+
+// ================================
+// INITIALIZE PREVIEW
+// ================================
+refreshMasterPreview();
+ </script>
 </body>
 </html>
