@@ -1288,16 +1288,16 @@ async function postJSON(url, data) {
   const contentType = res.headers.get("Content-Type") || "";
 
   if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`HTTP ${res.status}: ${errorText}`);
+    const errText = await res.text();
+    throw new Error(`HTTP ${res.status}: ${errText}`);
   }
 
   if (contentType.includes("application/json")) {
     return res.json();
   }
 
-  // Fallback so HTML errors don't break the UI
-  return res.text();
+  // fallback to text (prevents JSON parse crash)
+  return { error: await res.text() };
 }
 
 // ========================
