@@ -1,5 +1,5 @@
-const DEFAULT_WRITER_MODEL = "llama-3-70b";   // adjust to real Groq model id
-const DEFAULT_CLASSIFIER_MODEL = "mixtral-8x7b"; // adjust as needed
+const DEFAULT_WRITER_MODEL = "llama3-70b-8192";
+const DEFAULT_CLASSIFIER_MODEL = "mixtral-8x7b-32768";
 
 async function callGroq(env, { system, user, model }) {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -20,7 +20,7 @@ async function callGroq(env, { system, user, model }) {
 
   if (!res.ok) {
     const text = await res.text();
-    console.error("Groq error:", res.status, text);
+    console.error("Groq tailor-analyze error:", res.status, text);
     throw new Error("Groq API error");
   }
 
@@ -28,15 +28,36 @@ async function callGroq(env, { system, user, model }) {
   return data.choices[0].message.content;
 }
 
+function safeParseJson(text, fallback) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    const first = text.indexOf("{");
+    const last = text.lastIndexOf("}");
+    if (first !== -1 && last !== -1 && last > first) {
+      try {
+        return JSON.parse(text.slice(first, last + 1));
+      } catch {
+        console.warn("safeParseJson(inner) failed in tailor-analyze");
+      }
+    }
+  }
+  return fallback;
+}
+
 async function fetchJobPageText(url) {
+  if (!url) return "";
   try {
     const res = await fetch(url);
-    if (!res.ok) return "";
+    if (!res.ok) {
+      console.warn("fetchJobPageText non-200:", res.status);
+      return "";
+    }
     const html = await res.text();
-    // very naive strip – model will handle extraction better
-    return html.slice(0, 15000); // avoid huge prompts
+    // limit length so prompts don't explode
+    return html.slice(0, 15000);
   } catch (e) {
-    console.error("Failed to fetch job url:", url, e);
+    console.error("fetchJobPageText error:", e);
     return "";
   }
 }
@@ -54,31 +75,44 @@ export async function onRequestPost(context) {
   } = body;
 
   let combinedJD = job_description || "";
-
   if (!combinedJD && job_url) {
-    const html = await fetchJobPageText(job_url);
-    combinedJD = html; // Let the model extract relevant description from HTML-ish text
+    const page = await fetchJobPageText(job_url);
+    combinedJD = page;
   }
 
+  const styleHint = (() => {
+    switch (style) {
+      case "ats":
+        return "Use ultra-plain ATS-safe wording. Prioritize clarity and keywords over flair.";
+      case "minimal":
+        return "Use clean, concise, minimal prose. Professional but not stiff.";
+      case "two-column":
+        return "Assume skills can be visually grouped in a side column, but still write plain text.";
+      case "military":
+        return "Translate military language into civilian impact. Emphasize leadership, risk management, mission outcomes.";
+      case "creative":
+        return "You may be a bit more expressive in wording, but keep the text itself ATS-safe.";
+      default:
+        return "Use a balanced professional tone appropriate for ATS and recruiters.";
+    }
+  })();
+
   const systemWriter = `
-You are a senior technical resume writer and job match expert.
-Goal: TAILOR a resume to a specific job, while:
-- keeping all roles (do NOT hallucinate new employers or titles),
-- rewriting bullet points to highlight work that matches the job,
-- only using achievements that could reasonably come from the existing roles,
-- being honest and not fabricating skills or tools not implied by the resume.
+You are a senior technical resume writer and job-match expert.
 
-Formatting rules:
-- ATS-safe: no tables, no icons, no emojis.
-- Use concise bullet points.
-- Emphasize security / IT / AI details as relevant.
+Goal: TAILOR a resume to a specific job while:
+- keeping ALL roles (do NOT invent or remove employers or titles)
+- rewriting bullet points to emphasize work that matches the job description
+- only including achievements that could reasonably come from the original roles
+- never fabricating skills, tools, or duties the candidate does not have
 
-"style" parameter:
-- "ats": ultra-plain, keyword-rich.
-- "minimal": clean, concise, professional.
-- "two-column": content is still plain text, but you can conceptually group skills separately.
-- "military": helpful for veteran transitions; translate military language to civilian impact.
-- "creative": you may be more expressive in wording, but still ATS-safe text.
+Formatting:
+- ATS-safe: plain text, bullet-style content, no tables/emojis/icons
+- Focus on impact, metrics, tools, security/IT/AI detail as relevant
+
+${styleHint}
+
+Return ONLY valid JSON, no commentary.
 `;
 
   const userWriter = `
@@ -88,20 +122,18 @@ ${job_title || ""}
 JOB DESCRIPTION OR PAGE CONTENT:
 ${combinedJD || "(none provided)"}
 
-MASTER RESUME INPUT:
-${JSON.stringify(master_resume, null, 2)}
+MASTER RESUME INPUT (JSON):
+${JSON.stringify(master_resume || {}, null, 2)}
 
-STYLE CHOICE: ${style}
+Requirements:
+- Keep all roles in the experience history.
+- You may shorten or reorder, but do NOT delete roles or invent new ones.
+- Make bullets strongly aligned with the job's responsibilities and required skills.
+- Be honest: if the resume doesn't support something, don't claim it.
 
-Rewrite the resume content so that:
-- All roles are kept (no employment gaps filled by fiction).
-- Bullets are re-focused on responsibilities, tools, and achievements that match the job.
-- Any irrelevant content may be shortened, but not deleted from history.
-- The text remains truthful given the original resume.
-
-Return STRICT JSON with exactly:
+Return JSON exactly as:
 {
-  "match_score": 0-100 integer estimating how well this candidate fits the job,
+  "match_score": 0-100,
   "summary": "tailored professional summary",
   "skills": "tailored skills section text",
   "experience": "tailored experience section text with all roles preserved",
@@ -115,33 +147,32 @@ Return STRICT JSON with exactly:
     model: DEFAULT_WRITER_MODEL,
   });
 
-  let tailored;
-  try {
-    tailored = JSON.parse(rawWriter);
-  } catch (e) {
-    console.error("Failed to parse tailored JSON:", rawWriter);
-    tailored = {
-      match_score: 70,
-      summary: master_resume.summary || "",
-      skills: master_resume.skills || "",
-      experience: master_resume.experience || "",
-      extras:
-        "Model failed to respond in the expected format; using original resume text.",
-    };
-  }
+  let tailored = safeParseJson(rawWriter, {
+    match_score: 70,
+    summary: master_resume?.summary || "",
+    skills: master_resume?.skills || "",
+    experience: master_resume?.experience || "",
+    extras:
+      "The AI response could not be parsed cleanly. Using original resume text.",
+  });
 
-  // Optional: refine match_score using classifier model
+  // Optional second pass: more precise match score
   try {
     const systemClassifier = `
-You are a classifier estimating resume/job match.
-Return ONLY JSON: { "score": 0-100 }
+You are an expert classifier. Estimate how well a resume matches a job.
+
+Return ONLY compact JSON:
+{ "score": 0-100 }
 `;
     const userClassifier = `
-RESUME:
+TAILORED RESUME:
+Summary:
 ${tailored.summary}
 
+Skills:
 ${tailored.skills}
 
+Experience:
 ${tailored.experience}
 
 JOB DESCRIPTION OR PAGE CONTENT:
@@ -154,7 +185,7 @@ ${combinedJD}
       model: DEFAULT_CLASSIFIER_MODEL,
     });
 
-    const parsedClassifier = JSON.parse(rawClassifier);
+    const parsedClassifier = safeParseJson(rawClassifier, null);
     if (
       parsedClassifier &&
       typeof parsedClassifier.score === "number" &&
@@ -164,7 +195,7 @@ ${combinedJD}
       tailored.match_score = parsedClassifier.score;
     }
   } catch (e) {
-    console.warn("Classifier step failed, keeping writer match_score", e);
+    console.warn("tailor-analyze classifier step failed, keeping writer score", e);
   }
 
   return Response.json({
