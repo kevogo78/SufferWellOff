@@ -1,4 +1,4 @@
-const DEFAULT_CLASSIFIER_MODEL = "mixtral-8x7b";
+const DEFAULT_CLASSIFIER_MODEL = "mixtral-8x7b-32768";
 
 async function callGroq(env, { system, user, model = DEFAULT_CLASSIFIER_MODEL }) {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -19,12 +19,29 @@ async function callGroq(env, { system, user, model = DEFAULT_CLASSIFIER_MODEL })
 
   if (!res.ok) {
     const text = await res.text();
-    console.error("Groq error:", res.status, text);
+    console.error("Groq ats-scan error:", res.status, text);
     throw new Error("Groq API error");
   }
 
   const data = await res.json();
   return data.choices[0].message.content;
+}
+
+function safeParseJson(text, fallback) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    const first = text.indexOf("{");
+    const last = text.lastIndexOf("}");
+    if (first !== -1 && last !== -1 && last > first) {
+      try {
+        return JSON.parse(text.slice(first, last + 1));
+      } catch {
+        console.warn("safeParseJson(inner) failed in ats-scan");
+      }
+    }
+  }
+  return fallback;
 }
 
 export async function onRequestPost(context) {
@@ -33,13 +50,15 @@ export async function onRequestPost(context) {
   const { resume_text } = body;
 
   const systemPrompt = `
-You are an Applicant Tracking System (ATS) resume scanner.
-Your job is to:
-- Evaluate ATS readability
-- Flag structural/format issues (columns, tables, images, icons, weird bullets)
-- Suggest improvements
+You are acting like an Applicant Tracking System (ATS) resume scanner.
 
-Return strict JSON ONLY:
+Analyze the resume for:
+- structural issues (columns, tables, images, text boxes)
+- unclear section headings
+- inconsistent date formats
+- keyword clarity
+
+Return ONLY JSON:
 {
   "score": 0-100,
   "issues": ["...", "..."],
@@ -48,27 +67,21 @@ Return strict JSON ONLY:
 `;
 
   const userPrompt = `
-Here is the resume text:
-
+RESUME TEXT:
 ${resume_text || "(empty)"}
 `;
 
   const raw = await callGroq(env, { system: systemPrompt, user: userPrompt });
+  const fallback = {
+    score: 70,
+    issues: ["Model response was not valid JSON."],
+    suggestions: [
+      "Use a single-column layout with no tables.",
+      "Use standard headings: Experience, Education, Skills.",
+    ],
+  };
 
-  let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (e) {
-    console.error("ATS JSON parse error:", raw);
-    parsed = {
-      score: 70,
-      issues: ["Model response not in expected JSON format."],
-      suggestions: [
-        "Use simple bullet points.",
-        "Avoid multi-column layouts and tables.",
-      ],
-    };
-  }
+  const parsed = safeParseJson(raw, fallback);
 
   return Response.json(parsed);
 }
