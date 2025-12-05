@@ -969,6 +969,9 @@
       </section>
 
       <!-- TAILOR RESUME PANEL -->
+      const trJobTitle = document.getElementById("tr-job-title");
+      const trJobDesc = document.getElementById("tr-job-desc");
+      const trJobUrl  = document.getElementById("tr-job-url"); // <--- ADD THIS
       <section id="tool-tailor" class="tool-panel">
         <div class="content-layout">
           <!-- LEFT -->
@@ -1362,15 +1365,21 @@ document.getElementById("btn-master-clear").onclick = () => {
 // ================================
 document.getElementById("btn-master-ai").onclick = async () => {
   const payload = {
+  job_title: trJobTitle.value,
+  job_description: trJobDesc.value,
+  job_url: trJobUrl.value || null,          // <--- new
+  style: "auto",                            // later: "ats", "minimal", "two-column", "military", "creative"
+  source_type: "current",
+  master_resume: {
     name: mrName.value,
-    title: mrTitle.value,
     contact: mrContact.value,
     summary: mrSummary.value,
     experience: mrExperience.value,
     education: mrEducation.value,
     skills: mrSkills.value,
     projects: mrProjects.value,
-  };
+  },
+};
 
   const data = await postJSON("/api/master/generate-ai", payload);
 
