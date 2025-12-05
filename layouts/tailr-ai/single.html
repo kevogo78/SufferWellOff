@@ -1284,16 +1284,21 @@ async function postJSON(url, data) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  return await res.json();
-}
 
-function downloadFile(blob, filename) {
-  const link = document.createElement("a");
-  link.href = window.URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-}
+  const contentType = res.headers.get("Content-Type") || "";
 
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`HTTP ${res.status}: ${errorText}`);
+  }
+
+  if (contentType.includes("application/json")) {
+    return res.json();
+  }
+
+  // Fallback so HTML errors don't break the UI
+  return res.text();
+}
 
 // ========================
 // MASTER RESUME — PREVIEW
