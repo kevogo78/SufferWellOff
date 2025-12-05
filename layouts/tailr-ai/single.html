@@ -1384,7 +1384,7 @@ document.getElementById("btn-master-ai").onclick = async () => {
     },
   };
 
-  const data = await postJSON("/api/master/generate-ai", payload);
+  const data = await postJSON("/master/generate-ai", payload);
 
   mrSummary.value = data.summary;
   mrExperience.value = data.experience;
@@ -1413,7 +1413,7 @@ document.getElementById("btn-master-export-docs").onclick = async () => {
     },
   };
 
-  const data = await postJSON("/api/master/export-docs", payload);
+  const data = await postJSON("/master/export-docs", payload);
   window.open(data.url, "_blank");
 };
 
@@ -1434,7 +1434,7 @@ document.getElementById("btn-master-export-word").onclick = async () => {
     },
   };
 
-  const res = await fetch("/api/master/export-word", {
+  const res = await fetch("/master/export-word", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -1470,7 +1470,7 @@ document.getElementById("btn-tailor-analyze").onclick = async () => {
     },
   };
 
-  const data = await postJSON("/api/tailor/analyze", payload);
+  const data = await postJSON("/tailor/analyze", payload);
 
   trPreviewName.textContent = mrPreviewName.textContent;
   trPreviewContact.textContent = mrPreviewContact.textContent;
@@ -1497,7 +1497,7 @@ document.getElementById("btn-tailor-export-docs").onclick = async () => {
     },
   };
 
-  const data = await postJSON("/api/tailor/export-docs", payload);
+  const data = await postJSON("/tailor/export-docs", payload);
   window.open(data.url, "_blank");
 };
 
@@ -1517,7 +1517,7 @@ document.getElementById("btn-tailor-export-word").onclick = async () => {
     },
   };
 
-  const res = await fetch("/api/tailor/export-word", {
+  const res = await fetch("/tailor/export-word", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -1536,7 +1536,7 @@ const atsScoreLabel = document.getElementById("ats-score-label");
 const atsResults = document.getElementById("ats-results");
 
 document.getElementById("btn-ats-scan").onclick = async () => {
-  const data = await postJSON("/api/ats/scan", {
+  const data = await postJSON("/ats/scan", {
     resume_text: atsResume.value,
   });
 
@@ -1565,7 +1565,7 @@ document.getElementById("btn-match-score").onclick = async () => {
     job_description: matchJob.value,
   };
 
-  const data = await postJSON("/api/match/score", payload);
+  const data = await postJSON("/match/score", payload);
 
   matchScoreLabel.textContent = data.score;
 
