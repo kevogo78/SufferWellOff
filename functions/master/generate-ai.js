@@ -1,6 +1,14 @@
 const DEFAULT_WRITER_MODEL = "llama3-70b-8192";
 
+// ----------------------------------------
+// Helper: Call Groq with Cloudflare-safe fetch
+// ----------------------------------------
 async function callGroq(env, { system, user, model = DEFAULT_WRITER_MODEL }) {
+  if (!env.GROQ_API_KEY) {
+    console.error("ERROR: GROQ_API_KEY is missing from Cloudflare env!");
+    throw new Error("Missing GROQ_API_KEY");
+  }
+
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -15,40 +23,51 @@ async function callGroq(env, { system, user, model = DEFAULT_WRITER_MODEL }) {
       ],
       temperature: 0.4,
     }),
+
+    // REQUIRED for Cloudflare pages functions
+    cf: { cacheTtl: 0 }
   });
+
+  // Log status for debugging
+  console.log("Groq API status:", res.status);
 
   if (!res.ok) {
     const text = await res.text();
-    console.error("Groq master-generate-ai error:", res.status, text);
-    throw new Error("Groq API error");
+    console.error("Groq error body:", text);
+    throw new Error("Groq returned non-200 response");
   }
 
   const data = await res.json();
-  return data.choices[0].message.content;
+  return data.choices?.[0]?.message?.content || "";
 }
 
+// ----------------------------------------
+// Safe JSON extraction
+// ----------------------------------------
 function safeParseJson(text, fallback) {
   try {
-    // try direct parse first
     return JSON.parse(text);
   } catch {
-    // try to extract first {...last}
     const first = text.indexOf("{");
     const last = text.lastIndexOf("}");
-    if (first !== -1 && last !== -1 && last > first) {
+    if (first !== -1 && last !== -1) {
       try {
         return JSON.parse(text.slice(first, last + 1));
-      } catch {
-        console.warn("safeParseJson inner parse failed");
-      }
+      } catch {}
     }
   }
   return fallback;
 }
 
+// ----------------------------------------
+// MAIN FUNCTION
+// ----------------------------------------
 export async function onRequestPost(context) {
   const env = context.env;
   const body = await context.request.json();
+
+  // Debug: confirm secrets are loaded
+  console.log("Loaded GROQ_API_KEY?", !!env.GROQ_API_KEY);
 
   const {
     name,
@@ -62,23 +81,17 @@ export async function onRequestPost(context) {
   } = body;
 
   const systemPrompt = `
-You are an expert technical resume writer for cybersecurity, IT, software, and AI roles.
-
-Your job: improve a MASTER RESUME draft (all roles, all projects), while:
-- strictly preserving truth (no fabricating employers, titles, or tools)
-- making bullet points clear, quantified where possible, and impact-focused
-- keeping everything ATS-safe (no tables, no emojis, no fancy symbols)
-- returning ONLY valid JSON (no commentary).
-
-Write in clean US English, concise and professional.
+You are an expert resume writer for technical roles. Improve the text while:
+- preserving truth
+- adding clarity
+- keeping ATS-safe formatting
+Return ONLY JSON.
 `;
 
   const userPrompt = `
-Here is the current master resume data:
-
 Name: ${name || ""}
-Target title: ${title || ""}
-Contact line: ${contact || ""}
+Title: ${title || ""}
+Contact: ${contact || ""}
 
 Summary:
 ${summary || ""}
@@ -95,19 +108,20 @@ ${skills || ""}
 Projects:
 ${projects || ""}
 
-Improve the text while preserving the underlying facts.
-
-Return JSON with EXACTLY these keys:
-{
-  "summary": "...",
-  "experience": "...",
-  "education": "...",
-  "skills": "...",
-  "projects": "..."
-}
+Return JSON with keys:
+summary, experience, education, skills, projects
 `;
 
-  const raw = await callGroq(env, { system: systemPrompt, user: userPrompt });
+  let raw;
+  try {
+    raw = await callGroq(env, { system: systemPrompt, user: userPrompt });
+  } catch (err) {
+    console.error("Groq call failed:", err);
+    return new Response(
+      JSON.stringify({ error: "Groq call failed", details: err.message }),
+      { status: 500 }
+    );
+  }
 
   const fallback = {
     summary: summary || "",
