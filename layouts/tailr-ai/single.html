@@ -1252,7 +1252,7 @@
     </main>
   </div>
 
-  <script>
+ <script>
 // ========================
 // NAV MENU SWITCHING
 // ========================
@@ -1306,12 +1306,11 @@ const mrExperience = document.getElementById("mr-experience");
 const mrEducation = document.getElementById("mr-education");
 const mrSkills = document.getElementById("mr-skills");
 const mrProjects = document.getElementById("mr-projects");
-// ================================
-// TAILOR INPUT ELEMENTS (used by Master AI too)
-// ================================
+
+// Tailor fields also used by Master AI
 const trJobTitle = document.getElementById("tr-job-title");
-const trJobDesc = document.getElementById("tr-job-desc");
-const trJobUrl  = document.getElementById("tr-job-url");
+const trJobDesc  = document.getElementById("tr-job-desc");
+const trJobUrl   = document.getElementById("tr-job-url");
 
 const mrPreviewName = document.getElementById("mr-preview-name");
 const mrPreviewContact = document.getElementById("mr-preview-contact");
@@ -1396,9 +1395,8 @@ document.getElementById("btn-master-ai").onclick = async () => {
 };
 
 
-
 // ================================
-// MASTER RESUME — EXPORT TO DOCS
+// MASTER RESUME — EXPORT TO GOOGLE DOCS
 // ================================
 document.getElementById("btn-master-export-docs").onclick = async () => {
   const payload = {
@@ -1444,6 +1442,10 @@ document.getElementById("btn-master-export-word").onclick = async () => {
   downloadFile(blob, "MasterResume.docx");
 };
 
+
+// ================================
+// TAILOR RESUME
+// ================================
 const trPreviewName = document.getElementById("tr-preview-name");
 const trPreviewContact = document.getElementById("tr-preview-contact");
 const trPreviewSummary = document.getElementById("tr-preview-summary");
@@ -1458,6 +1460,7 @@ document.getElementById("btn-tailor-analyze").onclick = async () => {
   const payload = {
     job_title: trJobTitle.value,
     job_description: trJobDesc.value,
+    job_url: trJobUrl.value,
     source_type: "current",
     master_resume: {
       name: mrName.value,
@@ -1586,6 +1589,6 @@ document.getElementById("btn-match-score").onclick = async () => {
 // INITIALIZE PREVIEW
 // ================================
 refreshMasterPreview();
- </script>
+</script>
 </body>
 </html>
