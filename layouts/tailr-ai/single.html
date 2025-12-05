@@ -1,77 +1,1533 @@
-{{ define "main" }}
-<link rel="stylesheet" href="/tailr-ai/tailr.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tailr-AI | Resume Suite</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-elevated: #0b1020;
+      --bg-elevated-soft: #111827;
+      --accent: #22c55e;
+      --accent-soft: #16a34a;
+      --accent-muted: rgba(34, 197, 94, 0.16);
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --border-subtle: rgba(148, 163, 184, 0.25);
+      --danger: #f97373;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.8);
+      --shadow-subtle: 0 12px 24px rgba(15, 23, 42, 0.5);
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+    }
 
-<div class="tailr-page">
-  <header class="tailr-header">
-    <h1>Tailr AI</h1>
-    <p class="tagline">
-      Free AI-powered resume builder & tailoring assistant, running on Groq.
-    </p>
-  </header>
+    * {
+      box-sizing: border-box;
+    }
 
-  <section class="tailr-card">
-    <h2 class="section-title">1. Choose a mode</h2>
-    <div class="mode-buttons" id="modeButtons">
-      <button class="mode-btn active" data-mode="builder">Resume Builder</button>
-      <button class="mode-btn" data-mode="tailor">Resume Tailor</button>
-      <button class="mode-btn" data-mode="ats">ATS Optimize</button>
-      <button class="mode-btn" data-mode="match">Match Job Description</button>
-    </div>
-    <p class="mode-hint" id="modeHint">
-      Resume Builder: Paste raw info about yourself and let Tailr AI draft a full resume.
-    </p>
-  </section>
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background: radial-gradient(circle at top, #1f2937 0, #020617 50%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 24px;
+    }
 
-  <section class="tailr-grid">
-    <div class="tailr-card">
-      <h2 class="section-title">2. Your resume / experience</h2>
-      <textarea
-        id="resumeInput"
-        placeholder="Paste your current resume OR bullet points about your experience, skills, education, and projects…"
-      ></textarea>
-      <div class="field-meta">
-        <span id="resumeCount">0 characters</span>
+    .app-shell {
+      width: 100%;
+      max-width: 1240px;
+      border-radius: 30px;
+      background: linear-gradient(145deg, #020617, #030712);
+      box-shadow: var(--shadow-soft);
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      position: relative;
+      isolation: isolate;
+    }
+
+    .app-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.16), transparent 60%);
+      opacity: 0.9;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .sidebar {
+      background: radial-gradient(circle at top, #020617 0, #020617 40%, #030712 100%);
+      border-right: 1px solid var(--border-subtle);
+      padding: 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: radial-gradient(circle at 30% 30%, #bbf7d0 0, #22c55e 30%, #14532d 70%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      color: #022c22;
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.8);
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      font-size: 15px;
+      text-transform: uppercase;
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .sidebar-section-label {
+      margin-top: 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      padding-inline: 4px;
+    }
+
+    .nav {
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav-button {
+      width: 100%;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background: transparent;
+      padding: 9px 10px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.18s ease-out;
+    }
+
+    .nav-button span.icon {
+      font-size: 16px;
+    }
+
+    .nav-button span.label {
+      flex: 1;
+      text-align: left;
+    }
+
+    .nav-button span.badge {
+      font-size: 10px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: var(--muted);
+    }
+
+    .nav-button:hover {
+      background: rgba(15, 23, 42, 0.7);
+      border-color: rgba(148, 163, 184, 0.45);
+      color: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
+    .nav-button.active {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(20, 83, 45, 0.9));
+      border-color: rgba(74, 222, 128, 0.8);
+      color: #ecfdf3;
+      box-shadow: 0 0 30px rgba(34, 197, 94, 0.45);
+    }
+
+    .nav-button.active span.badge {
+      background: rgba(6, 95, 70, 0.9);
+      border-color: rgba(16, 185, 129, 0.9);
+      color: #bbf7d0;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px solid rgba(31, 41, 55, 0.8);
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      padding: 3px 8px;
+      font-size: 10px;
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.8);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pill strong {
+      color: #e5e7eb;
+      font-weight: 600;
+    }
+
+    .pill.donate {
+      border-color: rgba(34, 197, 94, 0.9);
+      color: #bbf7d0;
+      background: rgba(21, 128, 61, 0.3);
+      cursor: pointer;
+    }
+
+    .pill.donate:hover {
+      background: rgba(22, 163, 74, 0.45);
+    }
+
+    .main {
+      padding: 20px 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .main-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 4px;
+    }
+
+    .main-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .main-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .main-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .chip-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      padding: 4px 10px;
+      font-size: 11px;
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.7);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chip span.dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.9);
+    }
+
+    .chip.warning {
+      border-color: rgba(248, 113, 113, 0.7);
+      color: #fecaca;
+    }
+
+    .chip.warning span.dot {
+      background: #f97373;
+      box-shadow: 0 0 10px rgba(248, 113, 113, 0.9);
+    }
+
+    .content-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 14px;
+      align-items: stretch;
+      height: 100%;
+    }
+
+    .panel {
+      border-radius: var(--radius-lg);
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.85), #020617 70%);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-subtle);
+      padding: 16px 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 230px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .panel-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .panel-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .panel-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .panel-tag {
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: rgba(15, 23, 42, 0.86);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--muted);
+    }
+
+    .panel-tag span {
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field label {
+      font-size: 12px;
+      color: #e5e7eb;
+    }
+
+    .field small {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .input,
+    .textarea,
+    .select {
+      border-radius: 10px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text);
+      padding: 8px 9px;
+      font-size: 13px;
+      outline: none;
+      width: 100%;
+      resize: vertical;
+      min-height: 0;
+    }
+
+    .input:focus,
+    .textarea:focus,
+    .select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.5);
+    }
+
+    .textarea {
+      min-height: 90px;
+    }
+
+    .section-divider {
+      height: 1px;
+      border: none;
+      background: radial-gradient(circle at center, rgba(148, 163, 184, 0.7), transparent);
+      opacity: 0.5;
+      margin: 4px 0;
+    }
+
+    .panel-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    .panel-footer-note {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid transparent;
+      padding: 7px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      transition: all 0.16s ease-out;
+    }
+
+    .btn span.icon {
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+      color: #022c22;
+      font-weight: 600;
+      border-color: rgba(34, 197, 94, 0.9);
+      box-shadow: 0 10px 24px rgba(34, 197, 94, 0.4);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      border-color: rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.85);
+    }
+
+    .btn-outline:hover {
+      background: rgba(15, 23, 42, 0.95);
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border-color: transparent;
+      color: var(--muted);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(15, 23, 42, 0.7);
+      color: #e5e7eb;
+    }
+
+    .preview {
+      border-radius: var(--radius-lg);
+      background: radial-gradient(circle at top right, rgba(34, 197, 94, 0.06), transparent 60%),
+        #020617;
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-subtle);
+      padding: 15px 15px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 230px;
+    }
+
+    .preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .preview-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .preview-title {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #d1fae5;
+    }
+
+    .preview-subtitle {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .preview-meta {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .preview-paper {
+      margin-top: 2px;
+      border-radius: 12px;
+      background: #f9fafb;
+      color: #111827;
+      padding: 14px 16px 16px;
+      font-size: 12px;
+      line-height: 1.5;
+      max-height: 360px;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.25);
+    }
+
+    .preview-name {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .preview-contact {
+      font-size: 11px;
+      color: #4b5563;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
+
+    .preview-section {
+      margin-bottom: 6px;
+    }
+
+    .preview-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #111827;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 2px;
+      margin-bottom: 4px;
+    }
+
+    .preview-item {
+      margin-bottom: 4px;
+    }
+
+    .preview-item-title {
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .preview-item-meta {
+      font-size: 10px;
+      color: #4b5563;
+    }
+
+    .preview-bullets {
+      margin: 2px 0 0 14px;
+      padding: 0;
+      list-style: disc;
+    }
+
+    .preview-bullets li {
+      font-size: 11px;
+      margin-bottom: 2px;
+    }
+
+    .pill-score {
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: rgba(22, 163, 74, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.9);
+      color: #bbf7d0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill-score span.dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.9);
+    }
+
+    .pill-score.bad {
+      border-color: rgba(248, 113, 113, 0.9);
+      background: rgba(248, 113, 113, 0.08);
+      color: #fecaca;
+    }
+
+    .pill-score.bad span.dot {
+      background: #f97373;
+      box-shadow: 0 0 8px rgba(248, 113, 113, 0.9);
+    }
+
+    .tool-panel {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      height: 100%;
+    }
+
+    .tool-panel.active {
+      display: flex;
+    }
+
+    .results-box {
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px dashed rgba(148, 163, 184, 0.6);
+      padding: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .results-box strong {
+      color: #e5e7eb;
+    }
+
+    .results-list {
+      padding-left: 14px;
+      margin: 4px 0 0;
+      font-size: 12px;
+    }
+
+    .results-list li {
+      margin-bottom: 2px;
+    }
+
+    @media (max-width: 960px) {
+      body {
+        padding: 12px;
+      }
+
+      .app-shell {
+        grid-template-columns: 1fr;
+        border-radius: 22px;
+      }
+
+      .sidebar {
+        flex-direction: row;
+        align-items: center;
+        overflow-x: auto;
+        padding-bottom: 10px;
+      }
+
+      .brand {
+        margin-bottom: 0;
+        margin-right: 12px;
+      }
+
+      .sidebar-section-label,
+      .sidebar-footer {
+        display: none;
+      }
+
+      .nav {
+        flex-direction: row;
+        flex: 1;
+        justify-content: flex-end;
+      }
+
+      .nav-button {
+        min-width: max-content;
+        padding-inline: 12px;
+      }
+    }
+
+    @media (max-width: 840px) {
+      .content-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .main {
+        padding: 14px;
+      }
+
+      .panel,
+      .preview {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">T</div>
+        <div class="brand-text">
+          <div class="brand-title">Tailr-AI</div>
+          <div class="brand-subtitle">Smart resume & job match studio</div>
+        </div>
       </div>
-    </div>
 
-    <div class="tailr-card" id="jobCard" style="display:none;">
-      <h2 class="section-title">3. Job description (for Tailor / Match / ATS)</h2>
-      <textarea
-        id="jobInput"
-        placeholder="Paste the job description here so Tailr AI can align your resume to it…"
-      ></textarea>
-      <div class="field-meta">
-        <span id="jobCount">0 characters</span>
+      <div class="sidebar-section-label">Tools</div>
+      <nav class="nav">
+        <button class="nav-button active" data-tool="master">
+          <span class="icon">📘</span>
+          <span class="label">Master Resume Builder</span>
+          <span class="badge">Start here</span>
+        </button>
+        <button class="nav-button" data-tool="tailor">
+          <span class="icon">🎯</span>
+          <span class="label">Tailor Resume</span>
+          <span class="badge">Per job</span>
+        </button>
+        <button class="nav-button" data-tool="ats">
+          <span class="icon">🧠</span>
+          <span class="label">ATS Optimizer</span>
+          <span class="badge">Scanner</span>
+        </button>
+        <button class="nav-button" data-tool="match">
+          <span class="icon">🔍</span>
+          <span class="label">Match Score</span>
+          <span class="badge">0–100</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div>Always export to <strong>Google Docs or Word</strong>, proofread, then share as PDF if needed.</div>
+        <div class="pill-row">
+          <div class="pill">
+            <span>⚡</span>
+            <span><strong>Groq-powered</strong> AI soon</span>
+          </div>
+          <div class="pill donate" onclick="alert('Wire this up to your donation link (Patreon, Ko-fi, etc.)');">
+            <span>❤️</span>
+            <span>Support Tailr-AI</span>
+          </div>
+        </div>
       </div>
-    </div>
-  </section>
+    </aside>
 
-  <section class="tailr-card">
-    <h2 class="section-title">4. Run Tailr AI</h2>
-    <div class="actions-row">
-      <button id="runBtn" class="primary-btn">Generate</button>
-      <span id="statusText" class="status-text">Idle</span>
-    </div>
+    <!-- MAIN CONTENT -->
+    <main class="main">
+      <header class="main-header">
+        <div class="main-title-block">
+          <div class="main-title">Resume & Job Match Workspace</div>
+          <div class="main-subtitle">
+            Build a complete master resume, tailor it per job, optimize for ATS, and measure your match — all before you ever hit “Apply”.
+          </div>
+        </div>
+        <div class="chip-row">
+          <div class="chip">
+            <span class="dot"></span>
+            <span>Edit in Google Docs or Word before final PDFs.</span>
+          </div>
+          <div class="chip warning">
+            <span class="dot"></span>
+            <span>No raw PDF exports — always proofread first.</span>
+          </div>
+        </div>
+      </header>
 
-    <h3 class="section-title output-title">Result</h3>
-    <div class="output-toolbar">
-      <button id="copyBtn" class="ghost-btn">Copy Text</button>
-      <button id="pdfBtn" class="ghost-btn">Download as PDF</button>
-    </div>
-    <pre id="output" class="output-box">Your Tailr AI result will appear here…</pre>
-  </section>
+      <!-- TOOL PANELS -->
+      <section id="tool-master" class="tool-panel active">
+        <div class="content-layout">
+          <!-- LEFT: INPUT -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-block">
+                <div class="panel-title">Master Resume Builder</div>
+                <div class="panel-subtitle">
+                  Create your complete, all-in-one resume that stores every role, project, and skill.
+                </div>
+              </div>
+              <div class="panel-tag">
+                Mode: <span>Comprehensive</span>
+              </div>
+            </div>
 
-  <section class="tailr-footer">
-    <p>
-      💡 Tip: Always review AI output for accuracy before submitting your resume.
-    </p>
-    <p class="footer-small">
-      Built with ❤️ using Hugo, Cloudflare Pages, and Groq.
-    </p>
-  </section>
-</div>
+            <hr class="section-divider" />
 
-<!-- PDF library -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="/tailr-ai/tailr.js"></script>
-{{ end }}
+            <div class="field-grid">
+              <div class="field">
+                <label for="mr-name">Full Name</label>
+                <input id="mr-name" class="input" placeholder="Jane Doe" />
+              </div>
+              <div class="field">
+                <label for="mr-title">Target Role</label>
+                <input id="mr-title" class="input" placeholder="Cybersecurity Analyst, AI Engineer, ..." />
+              </div>
+              <div class="field">
+                <label for="mr-contact">Contact Line</label>
+                <small>Example: City, ST • email • phone • LinkedIn / GitHub</small>
+                <input id="mr-contact" class="input"
+                  placeholder="Atlanta, GA • jane@domain.com • (555) 555-5555 • linkedin.com/in/jane" />
+              </div>
+              <div class="field">
+                <label for="mr-summary">Summary / Professional Profile</label>
+                <textarea id="mr-summary" class="textarea"
+                  placeholder="2–4 sentences describing your background, strengths, and what you’re targeting."></textarea>
+              </div>
+            </div>
+
+            <hr class="section-divider" />
+
+            <div class="field">
+              <label for="mr-experience">Experience</label>
+              <small>
+                List roles, internships, military experience, leadership, or relevant work — Tailr-AI will split
+                and structure each entry.
+              </small>
+              <textarea id="mr-experience" class="textarea"
+                placeholder="- Role, Company, Location, Dates&#10;- What you did, quantified results, tools/technologies used&#10;- One bullet per impact or achievement"></textarea>
+            </div>
+
+            <div class="field-grid">
+              <div class="field">
+                <label for="mr-education">Education</label>
+                <textarea id="mr-education" class="textarea"
+                  placeholder="Degree, Major, School, Grad date, GPA (optional), key coursework or honors."></textarea>
+              </div>
+              <div class="field">
+                <label for="mr-skills">Skills, Tools & Certifications</label>
+                <textarea id="mr-skills" class="textarea"
+                  placeholder="Security tools, languages, frameworks, cloud platforms, OS, certifications, etc."></textarea>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="mr-projects">Projects & Achievements</label>
+              <textarea id="mr-projects" class="textarea"
+                placeholder="Portfolio projects, hackathons, open-source, research, awards, or volunteer leadership."></textarea>
+            </div>
+
+            <div class="panel-footer">
+              <div class="panel-footer-note">
+                Click “Refresh Preview” to see a clean resume layout. You’ll export to Google Docs or Word for final
+                editing.
+              </div>
+              <div class="button-row">
+                <button class="btn btn-ghost" id="btn-master-clear">
+                  <span class="icon">🧹</span>
+                  <span>Clear</span>
+                </button>
+                <!-- Hook this up to Groq later -->
+                <button class="btn btn-outline" id="btn-master-ai">
+                  <span class="icon">🤖</span>
+                  <span>Generate / Improve with AI</span>
+                </button>
+                <button class="btn btn-primary" id="btn-master-preview">
+                  <span class="icon">🔁</span>
+                  <span>Refresh Preview</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: PREVIEW + EXPORT -->
+          <div class="preview">
+            <div class="preview-header">
+              <div class="preview-title-block">
+                <div class="preview-title">Master Resume Preview</div>
+                <div class="preview-subtitle">
+                  Fully editable once exported to Google Docs or Word.
+                </div>
+              </div>
+              <div class="preview-meta" id="mr-preview-meta">
+                Ready to export
+              </div>
+            </div>
+
+            <div class="preview-paper" id="mr-preview-paper">
+              <div class="preview-name" id="mr-preview-name">Your Name Here</div>
+              <div class="preview-contact" id="mr-preview-contact">
+                City, ST • email@domain.com • (000) 000-0000 • linkedin.com/in/you • github.com/you
+              </div>
+
+              <div class="preview-section">
+                <div class="preview-section-title">Professional Summary</div>
+                <div id="mr-preview-summary">
+                  Brief 2–4 sentence summary describing who you are, your strongest skills, and the type of role you’re
+                  targeting.
+                </div>
+              </div>
+
+              <div class="preview-section">
+                <div class="preview-section-title">Experience</div>
+                <div id="mr-preview-experience">
+                  <div class="preview-item">
+                    <div class="preview-item-title">Role Title — Company</div>
+                    <div class="preview-item-meta">Location • Dates</div>
+                    <ul class="preview-bullets">
+                      <li>Quantify an impact: created X, improved Y%, reduced Z.</li>
+                      <li>Mention tools / technologies used.</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="preview-section">
+                <div class="preview-section-title">Education</div>
+                <div id="mr-preview-education">
+                  B.S. in Something — School Name, City, ST (Month Year)
+                </div>
+              </div>
+
+              <div class="preview-section">
+                <div class="preview-section-title">Skills & Certifications</div>
+                <div id="mr-preview-skills">
+                  List skills in categories: Languages | Tools | Cloud | Security | Certifications.
+                </div>
+              </div>
+
+              <div class="preview-section">
+                <div class="preview-section-title">Projects & Achievements</div>
+                <div id="mr-preview-projects">
+                  Highlight 2–4 projects or achievements that prove your skills with measurable results.
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-footer" style="margin-top: 10px;">
+              <div class="panel-footer-note">
+                <strong>Export workflow:</strong> Google Docs / Word → final edits & proofreading → optional PDF.
+              </div>
+              <div class="button-row">
+                <button class="btn btn-outline" id="btn-master-export-docs">
+                  <span class="icon">📄</span>
+                  <span>Export to Google Docs</span>
+                </button>
+                <button class="btn btn-outline" id="btn-master-export-word">
+                  <span class="icon">💾</span>
+                  <span>Export to Word (.docx)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAILOR RESUME PANEL -->
+      <section id="tool-tailor" class="tool-panel">
+        <div class="content-layout">
+          <!-- LEFT -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-block">
+                <div class="panel-title">Tailor Resume</div>
+                <div class="panel-subtitle">
+                  Take your master resume and shape it to a specific job description.
+                </div>
+              </div>
+              <div class="panel-tag">
+                Mode: <span>Per-job version</span>
+              </div>
+            </div>
+
+            <hr class="section-divider" />
+
+            <div class="field">
+              <label for="tr-job-title">Job Title</label>
+              <input id="tr-job-title" class="input" placeholder="e.g., Junior Security Analyst, SOC Analyst I" />
+            </div>
+
+            <div class="field">
+              <label for="tr-job-desc">Job Description</label>
+              <small>Paste the full job posting. Tailr-AI will extract required skills, keywords, and responsibilities.</small>
+              <textarea id="tr-job-desc" class="textarea"
+                placeholder="Paste job description here..."></textarea>
+            </div>
+
+            <div class="field">
+              <label for="tr-source">Source / Master Resume Version</label>
+              <small>
+                In future versions this will list your saved master resumes. For now, Tailr-AI will use whatever you’ve
+                built on the Master Resume tab.
+              </small>
+              <select id="tr-source" class="select">
+                <option value="current">Use current Master Resume draft</option>
+                <option value="paste">I’ll paste a resume below</option>
+              </select>
+            </div>
+
+            <div class="field" id="tr-resume-wrapper" style="display: none;">
+              <label for="tr-resume-raw">Paste Resume to Tailor</label>
+              <textarea id="tr-resume-raw" class="textarea"
+                placeholder="If you selected 'paste', drop your existing resume here."></textarea>
+            </div>
+
+            <div class="panel-footer">
+              <div class="panel-footer-note">
+                Tailoring focuses on relevance and keywords. Export the tailored version to Docs/Word for final edits.
+              </div>
+              <div class="button-row">
+                <button class="btn btn-outline" id="btn-tailor-analyze">
+                  <span class="icon">🧠</span>
+                  <span>Analyze & Tailor (AI)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT -->
+          <div class="preview">
+            <div class="preview-header">
+              <div class="preview-title-block">
+                <div class="preview-title">Tailored Resume Preview</div>
+                <div class="preview-subtitle">
+                  Focused on this specific job’s requirements and language.
+                </div>
+              </div>
+              <div class="pill-score" id="tr-match-pill">
+                <span class="dot"></span>
+                <span><strong>Match Score:</strong> <span id="tr-match-score">–</span>/100</span>
+              </div>
+            </div>
+
+            <div class="preview-paper" id="tr-preview-paper">
+              <div class="preview-name" id="tr-preview-name">Your Name Here</div>
+              <div class="preview-contact" id="tr-preview-contact">
+                Contact details pulled from your master resume.
+              </div>
+
+              <div class="preview-section">
+                <div class="preview-section-title">Profile (Aligned to Role)</div>
+                <div id="tr-preview-summary">
+                  Once analyzed, this section will highlight why you’re a strong fit specifically for the job you pasted.
+                </div>
+              </div>
+
+              <div class="preview-section">
+                <div class="preview-section-title">Key Skills for This Role</div>
+                <div id="tr-preview-skills">
+                  Tailr-AI will prioritize and reorder skills based on the job description and required tools.
+                </div>
+              </div>
+
+              <div class="preview-section">
+                <div class="preview-section-title">Relevant Experience</div>
+                <div id="tr-preview-experience">
+                  Experience bullets will be filtered and rewritten to mirror language and focus areas in the posting.
+                </div>
+              </div>
+
+              <div class="preview-section">
+                <div class="preview-section-title">Extras to Consider</div>
+                <div id="tr-preview-extras">
+                  Suggestions for optional lines or supporting examples you can add manually before sending.
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-footer" style="margin-top: 10px;">
+              <div class="panel-footer-note">
+                Export, proofread, and keep only what truly reflects your experience — no blind copy/paste.
+              </div>
+              <div class="button-row">
+                <button class="btn btn-outline" id="btn-tailor-export-docs">
+                  <span class="icon">📄</span>
+                  <span>Export to Google Docs</span>
+                </button>
+                <button class="btn btn-outline" id="btn-tailor-export-word">
+                  <span class="icon">💾</span>
+                  <span>Export to Word (.docx)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ATS OPTIMIZER PANEL -->
+      <section id="tool-ats" class="tool-panel">
+        <div class="content-layout">
+          <!-- LEFT -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-block">
+                <div class="panel-title">ATS Optimizer</div>
+                <div class="panel-subtitle">
+                  Check if your resume can be cleanly read by Applicant Tracking Systems and fix issues.
+                </div>
+              </div>
+              <div class="panel-tag">
+                Mode: <span>ATS-friendly</span>
+              </div>
+            </div>
+
+            <hr class="section-divider" />
+
+            <div class="field">
+              <label for="ats-resume">Paste Resume</label>
+              <small>
+                Paste plain text from Word/Google Docs — avoid tables, columns, and heavy graphics. Tailr-AI will flag
+                formatting problems.
+              </small>
+              <textarea id="ats-resume" class="textarea" placeholder="Paste your resume text here..."></textarea>
+            </div>
+
+            <div class="panel-footer">
+              <div class="panel-footer-note">
+                This tool focuses on structure, parse-ability, and keyword clarity — not visual design.
+              </div>
+              <div class="button-row">
+                <button class="btn btn-outline" id="btn-ats-scan">
+                  <span class="icon">🧠</span>
+                  <span>Run ATS Scan</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT -->
+          <div class="preview">
+            <div class="preview-header">
+              <div class="preview-title-block">
+                <div class="preview-title">ATS Scan Results</div>
+                <div class="preview-subtitle">
+                  Issues to fix before uploading to portals.
+                </div>
+              </div>
+              <div class="pill-score bad" id="ats-score-pill">
+                <span class="dot"></span>
+                <span><strong>ATS Readability:</strong> <span id="ats-score-label">Pending</span></span>
+              </div>
+            </div>
+
+            <div class="results-box" id="ats-results">
+              <strong>How this works:</strong>
+              <ul class="results-list">
+                <li>Flags columns, tables, graphics, or text boxes that ATS might ignore.</li>
+                <li>Checks for clear section headings (Experience, Education, Skills, etc.).</li>
+                <li>Looks for consistent bullet structure and date formatting.</li>
+                <li>Suggests simpler formatting so your content is actually read.</li>
+              </ul>
+              <p style="margin-top:6px;">
+                Paste a resume and run the scan to see concrete suggestions here.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MATCH SCORE PANEL -->
+      <section id="tool-match" class="tool-panel">
+        <div class="content-layout">
+          <!-- LEFT -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-block">
+                <div class="panel-title">Match Score</div>
+                <div class="panel-subtitle">
+                  Compare your resume against a job description and see how close the fit is.
+                </div>
+              </div>
+              <div class="panel-tag">
+                Mode: <span>Fit analysis</span>
+              </div>
+            </div>
+
+            <hr class="section-divider" />
+
+            <div class="field">
+              <label for="match-resume">Resume</label>
+              <textarea id="match-resume" class="textarea"
+                placeholder="Paste your resume text here for comparison."></textarea>
+            </div>
+
+            <div class="field">
+              <label for="match-job">Job Description</label>
+              <textarea id="match-job" class="textarea"
+                placeholder="Paste the target job description here."></textarea>
+            </div>
+
+            <div class="panel-footer">
+              <div class="panel-footer-note">
+                Aim for a strong match score, but never fake experience or skills. Tailr-AI is a coach, not a cheat code.
+              </div>
+              <div class="button-row">
+                <button class="btn btn-outline" id="btn-match-score">
+                  <span class="icon">📊</span>
+                  <span>Calculate Match Score</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT -->
+          <div class="preview">
+            <div class="preview-header">
+              <div class="preview-title-block">
+                <div class="preview-title">Match Insights</div>
+                <div class="preview-subtitle">
+                  Where you align well, and where you’re light.
+                </div>
+              </div>
+              <div class="pill-score" id="match-score-pill">
+                <span class="dot"></span>
+                <span><strong>Score:</strong> <span id="match-score-label">–</span>/100</span>
+              </div>
+            </div>
+
+            <div class="results-box" id="match-results">
+              <strong>What you’ll see here:</strong>
+              <ul class="results-list">
+                <li>Overall match score (0–100).</li>
+                <li>Skills you already cover well.</li>
+                <li>Keywords and responsibilities you’re missing.</li>
+                <li>Suggestions to tweak your resume before tailoring.</li>
+              </ul>
+              <p style="margin-top:6px;">
+                Paste your resume and job description, then calculate to see detailed insights.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // ====== NAV TOGGLE ======
+    const navButtons = document.querySelectorAll(".nav-button");
+    const toolPanels = document.querySelectorAll(".tool-panel");
+
+    navButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const tool = btn.dataset.tool;
+
+        navButtons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        toolPanels.forEach((panel) => {
+          if (panel.id === `tool-${tool}`) {
+            panel.classList.add("active");
+          } else {
+            panel.classList.remove("active");
+          }
+        });
+      });
+    });
+
+    // ====== MASTER RESUME PREVIEW LOGIC ======
+    const mrName = document.getElementById("mr-name");
+    const mrTitle = document.getElementById("mr-title");
+    const mrContact = document.getElementById("mr-contact");
+    const mrSummary = document.getElementById("mr-summary");
+    const mrExperience = document.getElementById("mr-experience");
+    const mrEducation = document.getElementById("mr-education");
+    const mrSkills = document.getElementById("mr-skills");
+    const mrProjects = document.getElementById("mr-projects");
+
+    const mrPreviewName = document.getElementById("mr-preview-name");
+    const mrPreviewContact = document.getElementById("mr-preview-contact");
+    const mrPreviewSummary = document.getElementById("mr-preview-summary");
+    const mrPreviewExperience = document.getElementById("mr-preview-experience");
+    const mrPreviewEducation = document.getElementById("mr-preview-education");
+    const mrPreviewSkills = document.getElementById("mr-preview-skills");
+    const mrPreviewProjects = document.getElementById("mr-preview-projects");
+    const mrPreviewMeta = document.getElementById("mr-preview-meta");
+
+    function simpleEscape(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function convertBullets(text) {
+      if (!text.trim()) return "";
+      const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+      if (!lines.length) return "";
+      return (
+        "<ul class='preview-bullets'>" +
+        lines
+          .map((line) => {
+            const clean = line.replace(/^[-•\u2022]\s*/, "").trim();
+            return `<li>${simpleEscape(clean)}</li>`;
+          })
+          .join("") +
+        "</ul>"
+      );
+    }
+
+    function refreshMasterPreview() {
+      const nameVal = mrName.value.trim() || "Your Name Here";
+      const titleVal = mrTitle.value.trim();
+      const contactVal = mrContact.value.trim() ||
+        "City, ST • email@domain.com • (000) 000-0000 • linkedin.com/in/you • github.com/you";
+
+      mrPreviewName.textContent = nameVal.toUpperCase();
+      mrPreviewContact.textContent = contactVal;
+
+      const summaryVal = mrSummary.value.trim();
+      mrPreviewSummary.textContent =
+        summaryVal ||
+        "Brief 2–4 sentence summary describing who you are, your strongest skills, and the type of role you’re targeting.";
+
+      const expVal = mrExperience.value.trim();
+      if (expVal) {
+        mrPreviewExperience.innerHTML = convertBullets(expVal);
+      } else {
+        mrPreviewExperience.innerHTML = `
+          <div class="preview-item">
+            <div class="preview-item-title">Role Title — Company</div>
+            <div class="preview-item-meta">Location • Dates</div>
+            <ul class="preview-bullets">
+              <li>Quantify an impact: created X, improved Y%, reduced Z.</li>
+              <li>Mention tools / technologies used.</li>
+            </ul>
+          </div>`;
+      }
+
+      const eduVal = mrEducation.value.trim();
+      mrPreviewEducation.textContent =
+        eduVal || "B.S. in Something — School Name, City, ST (Month Year)";
+
+      const skillsVal = mrSkills.value.trim();
+      mrPreviewSkills.textContent =
+        skillsVal ||
+        "List skills in categories: Languages | Tools | Cloud | Security | Certifications.";
+
+      const projVal = mrProjects.value.trim();
+      mrPreviewProjects.textContent =
+        projVal ||
+        "Highlight 2–4 projects or achievements that prove your skills with measurable results.";
+
+      mrPreviewMeta.textContent = "Preview updated — safe to export and edit.";
+    }
+
+    document.getElementById("btn-master-preview").addEventListener("click", refreshMasterPreview);
+
+    document.getElementById("btn-master-clear").addEventListener("click", () => {
+      [mrName, mrTitle, mrContact, mrSummary, mrExperience, mrEducation, mrSkills, mrProjects].forEach(
+        (el) => (el.value = "")
+      );
+      refreshMasterPreview();
+    });
+
+    // Stub for Groq-powered AI
+    document.getElementById("btn-master-ai").addEventListener("click", () => {
+      alert(
+        "This is where you’ll connect your Groq API.\n\n" +
+          "Frontend hook: #btn-master-ai\n" +
+          "TODO: Send current form fields to your backend route, call Groq, then replace fields with AI-enhanced content."
+      );
+    });
+
+    // ====== TAILOR RESUME LOGIC ======
+    const trSource = document.getElementById("tr-source");
+    const trResumeWrapper = document.getElementById("tr-resume-wrapper");
+    const trJobTitle = document.getElementById("tr-job-title");
+    const trJobDesc = document.getElementById("tr-job-desc");
+
+    const trPreviewName = document.getElementById("tr-preview-name");
+    const trPreviewContact = document.getElementById("tr-preview-contact");
+    const trPreviewSummary = document.getElementById("tr-preview-summary");
+    const trPreviewSkills = document.getElementById("tr-preview-skills");
+    const trPreviewExperience = document.getElementById("tr-preview-experience");
+    const trPreviewExtras = document.getElementById("tr-preview-extras");
+    const trMatchScoreLabel = document.getElementById("tr-match-score");
+
+    trSource.addEventListener("change", () => {
+      trResumeWrapper.style.display = trSource.value === "paste" ? "block" : "none";
+    });
+
+    document.getElementById("btn-tailor-analyze").addEventListener("click", () => {
+      // Stubbed logic: simple placeholder using current master + job title
+      refreshMasterPreview(); // make sure master is up to date
+
+      const jobTitleText = trJobTitle.value.trim() || "Target Role";
+      const descText = trJobDesc.value.trim();
+
+      trPreviewName.textContent = mrPreviewName.textContent;
+      trPreviewContact.textContent = mrPreviewContact.textContent;
+
+      trPreviewSummary.textContent =
+        descText
+          ? `Tailored for ${jobTitleText}: This version emphasizes the experience, tools, and accomplishments that map most directly to the job description you provided.`
+          : "Once you paste a job description and run Tailor, this section will call out why you’re a strong fit for that specific posting.";
+
+      trPreviewSkills.textContent =
+        "Skills will be reordered and filtered to highlight the technologies, frameworks, and responsibilities repeated in the job description.";
+
+      trPreviewExperience.textContent =
+        "Experience bullets will be filtered to focus on security, automation, incident response, or other themes in the posting.";
+
+      trPreviewExtras.textContent =
+        "Use this tailored version as a starting point. Add concrete metrics and stories from your real experience before applying.";
+
+      // Dummy match score (static placeholder for now)
+      trMatchScoreLabel.textContent = descText ? "72" : "–";
+
+      alert(
+        "AI tailoring will go here.\n\n" +
+          "Frontend hook: #btn-tailor-analyze\n" +
+          "TODO: Send job description + master resume to backend (Groq), then fill the Tailored Resume preview with AI output and calculated match score."
+      );
+    });
+
+    // Export stubs for Tailor
+    document.getElementById("btn-tailor-export-docs").addEventListener("click", () => {
+      alert(
+        "Export to Google Docs (Tailored Resume)\n\n" +
+          "Frontend hook: #btn-tailor-export-docs\n" +
+          "TODO: send structured resume data to your backend, generate .docx or use Google Docs API, then redirect user to the doc."
+      );
+    });
+
+    document.getElementById("btn-tailor-export-word").addEventListener("click", () => {
+      alert(
+        "Export to Word (.docx) (Tailored Resume)\n\n" +
+          "Frontend hook: #btn-tailor-export-word\n" +
+          "TODO: make the backend respond with a .docx download for the tailored resume."
+      );
+    });
+
+    // ====== ATS OPTIMIZER LOGIC ======
+    const atsResume = document.getElementById("ats-resume");
+    const atsResults = document.getElementById("ats-results");
+    const atsScoreLabel = document.getElementById("ats-score-label");
+
+    document.getElementById("btn-ats-scan").addEventListener("click", () => {
+      const text = atsResume.value || "";
+      const lengthScore = Math.min(100, Math.max(20, text.length / 10)); // crude placeholder
+      atsScoreLabel.textContent = `${Math.round(lengthScore)} / 100 (demo)`;
+
+      atsResults.innerHTML =
+        "<strong>Demo ATS Scan Summary:</strong>" +
+        "<ul class='results-list'>" +
+        "<li>Check for multiple columns, tables, or text boxes — keep layout simple and single-column.</li>" +
+        "<li>Use clear headings like “Experience”, “Education”, and “Skills”.</li>" +
+        "<li>Avoid images, icons, and complex graphics.</li>" +
+        "<li>Ensure dates and job titles follow consistent patterns.</li>" +
+        "</ul>" +
+        "<p style='margin-top:6px;'>Backend ATS logic will score structure and keyword coverage more precisely.</p>";
+
+      alert(
+        "ATS scan logic will go here.\n\n" +
+          "Frontend hook: #btn-ats-scan\n" +
+          "TODO: send pasted resume to backend, run ATS checks, compute a score, and return detailed issues."
+      );
+    });
+
+    // ====== MATCH SCORE LOGIC ======
+    const matchResume = document.getElementById("match-resume");
+    const matchJob = document.getElementById("match-job");
+    const matchScoreLabel = document.getElementById("match-score-label");
+    const matchResults = document.getElementById("match-results");
+
+    document.getElementById("btn-match-score").addEventListener("click", () => {
+      const resumeText = matchResume.value || "";
+      const jobText = matchJob.value || "";
+
+      if (!resumeText.trim() || !jobText.trim()) {
+        alert("Please paste both a resume and a job description to calculate a match score.");
+        return;
+      }
+
+      // Very simple placeholder score: compare lengths
+      const ratio = Math.min(1, resumeText.length / jobText.length);
+      const score = Math.round(40 + ratio * 60); // 40–100
+
+      matchScoreLabel.textContent = score.toString();
+
+      matchResults.innerHTML =
+        "<strong>Demo Match Analysis:</strong>" +
+        "<ul class='results-list'>" +
+        "<li>Keyword overlap, responsibilities, and tools will be highlighted here.</li>" +
+        "<li>Tailr-AI will show what you cover well and what you’re missing.</li>" +
+        "<li>Use this score to decide if you should tailor further before applying.</li>" +
+        "</ul>" +
+        "<p style='margin-top:6px;'>Backend logic will use real NLP with Groq to compare skills, duties, and seniority level.</p>";
+
+      alert(
+        "Real match scoring will go here.\n\n" +
+          "Frontend hook: #btn-match-score\n" +
+          "TODO: send resume + job description to backend, call Groq, and compute a semantic match score + detailed breakdown."
+      );
+    });
+
+    // ====== EXPORT STUBS FOR MASTER RESUME ======
+    document.getElementById("btn-master-export-docs").addEventListener("click", () => {
+      alert(
+        "Export to Google Docs (Master Resume)\n\n" +
+          "Frontend hook: #btn-master-export-docs\n" +
+          "TODO: send structured master resume data to backend, generate a Google Doc via API, and redirect user to it."
+      );
+    });
+
+    document.getElementById("btn-master-export-word").addEventListener("click", () => {
+      alert(
+        "Export to Word (.docx) (Master Resume)\n\n" +
+          "Frontend hook: #btn-master-export-word\n" +
+          "TODO: call backend endpoint that returns a .docx file download."
+      );
+    });
+
+    // Initial preview
+    refreshMasterPreview();
+  </script>
+</body>
+</html>
