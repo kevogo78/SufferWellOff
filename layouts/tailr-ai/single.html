@@ -1300,7 +1300,6 @@ async function postJSON(url, data) {
 // MASTER RESUME — PREVIEW
 // ========================
 const mrName = document.getElementById("mr-name");
-const mrTitle = document.getElementById("mr-title");
 const mrContact = document.getElementById("mr-contact");
 const mrSummary = document.getElementById("mr-summary");
 const mrExperience = document.getElementById("mr-experience");
@@ -1351,7 +1350,6 @@ document.getElementById("btn-master-preview").onclick = refreshMasterPreview;
 document.getElementById("btn-master-clear").onclick = () => {
   [
     mrName,
-    mrTitle,
     mrContact,
     mrSummary,
     mrExperience,
@@ -1369,7 +1367,6 @@ document.getElementById("btn-master-clear").onclick = () => {
 document.getElementById("btn-master-ai").onclick = async () => {
   const payload = {
     name: mrName.value,
-    title: mrTitle.value,
     contact: mrContact.value,
     summary: mrSummary.value,
     experience: mrExperience.value,
