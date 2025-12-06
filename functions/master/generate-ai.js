@@ -2,7 +2,13 @@ const MODEL = "llama-3.3-70b-versatile";
 
 export async function onRequestPost(context) {
   const env = context.env;
-  const body = await context.request.json();
+
+  let body;
+  try {
+    body = await context.request.json();
+  } catch (err) {
+    return new Response("Invalid JSON in request", { status: 400 });
+  }
 
   const input = {
     name: body.name,
@@ -18,21 +24,18 @@ You are an elite resume writing engine.
 
 RULES:
 - Output ONLY valid JSON.
+- DO NOT wrap JSON in markdown fences.
 - Fix and standardize the contact line:
   * Proper city/state capitalization
-  * Use the format: City, ST • email • phone
+  * Format: City, ST • email • phone
   * Normalize phone numbers to (XXX) XXX-XXXX
 - Rewrite ALL experience into:
   * Job Title — Company (Location • Dates)
   * 2–6 strong achievement bullets per role
   * Use metrics or outcomes whenever possible
-  * Infer the correct job title if unclear
 - Validate and fix education formatting.
-- Extract hidden skills from experience/projects.
-- Expand the skills list using industry standards.
-- Improve grammar, spelling, and clarity everywhere.
-- Create a professional summary using:
-  experience + education + skills + certifications + projects.
+- Expand skills list using hidden skills + experience.
+- Create a professional summary using all sections.
 `;
 
   const user = `
@@ -58,6 +61,7 @@ Return JSON with keys:
 contact, summary, experience, education, skills, projects
 `;
 
+  // === CALL GROQ ===
   const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -76,5 +80,23 @@ contact, summary, experience, education, skills, projects
 
   const data = await resp.json();
 
-  return Response.json(JSON.parse(data.choices[0].message.content));
+  let raw = data.choices?.[0]?.message?.content || "";
+
+  // === CLEAN AI RESPONSE (fixes your crash) ===
+  raw = raw
+    .replace(/```json/gi, "")
+    .replace(/```/g, "")
+    .trim();
+
+  let parsed;
+
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    return new Response("AI returned invalid JSON:\n\n" + raw, {
+      status: 500
+    });
+  }
+
+  return Response.json(parsed);
 }
