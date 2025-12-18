@@ -1,87 +1,105 @@
-const DEFAULT_CLASSIFIER_MODEL = "mixtral-8x7b-32768";
+export async function onRequestPost(context) {
+  const { request } = context;
 
-async function callGroq(env, { system, user, model = DEFAULT_CLASSIFIER_MODEL }) {
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.GROQ_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-      temperature: 0.2,
-    }),
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return new Response("Invalid JSON body", { status: 400 });
+  }
+
+  const resumeText = (body.resume_text || "").trim();
+
+  if (!resumeText) {
+    return Response.json({
+      score: "N/A",
+      issues: ["No resume text provided"],
+      suggestions: ["Paste resume text to run ATS scan"]
+    });
+  }
+
+  const issues = [];
+  const suggestions = [];
+
+  const textLower = resumeText.toLowerCase();
+
+  // ---------- Section header checks ----------
+  const requiredSections = [
+    "experience",
+    "education",
+    "skills"
+  ];
+
+  requiredSections.forEach(section => {
+    if (!textLower.includes(section)) {
+      issues.push(`Missing or unclear "${section}" section`);
+      suggestions.push(`Add a clear "${section.toUpperCase()}" heading`);
+    }
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("Groq ats-scan error:", res.status, text);
-    throw new Error("Groq API error");
+  // ---------- Bullet consistency ----------
+  const bulletMatches = resumeText.match(/[•\-–]/g) || [];
+  const uniqueBullets = new Set(bulletMatches);
+
+  if (uniqueBullets.size > 2) {
+    issues.push("Inconsistent bullet symbols detected");
+    suggestions.push("Use a single bullet style throughout (• or -)");
   }
 
-  const data = await res.json();
-  return data.choices[0].message.content;
-}
-
-function safeParseJson(text, fallback) {
-  try {
-    return JSON.parse(text);
-  } catch {
-    const first = text.indexOf("{");
-    const last = text.lastIndexOf("}");
-    if (first !== -1 && last !== -1 && last > first) {
-      try {
-        return JSON.parse(text.slice(first, last + 1));
-      } catch {
-        console.warn("safeParseJson(inner) failed in ats-scan");
-      }
+  // ---------- Long paragraph detection ----------
+  resumeText.split("\n\n").forEach(block => {
+    if (block.length > 600 && !block.includes("•")) {
+      issues.push("Long paragraph detected (hard for ATS to parse)");
+      suggestions.push("Break long paragraphs into bullet points");
     }
+  });
+
+  // ---------- Table / column heuristics ----------
+  if (resumeText.includes("|") || resumeText.includes("\t")) {
+    issues.push("Possible table or column formatting detected");
+    suggestions.push("Avoid tables and columns; use plain text layout");
   }
-  return fallback;
-}
 
-export async function onRequestPost(context) {
-  const env = context.env;
-  const body = await context.request.json();
-  const { resume_text } = body;
+  // ---------- Special character density ----------
+  const specialCharCount = (resumeText.match(/[★✓✔►◆■]/g) || []).length;
+  if (specialCharCount > 3) {
+    issues.push("Excessive special characters detected");
+    suggestions.push("Remove decorative symbols that ATS may ignore");
+  }
 
-  const systemPrompt = `
-You are acting like an Applicant Tracking System (ATS) resume scanner.
+  // ---------- Date format consistency ----------
+  const datePatterns = resumeText.match(
+      /\b(\d{4}|\w+\s\d{4})\b/g
+  ) || [];
 
-Analyze the resume for:
-- structural issues (columns, tables, images, text boxes)
-- unclear section headings
-- inconsistent date formats
-- keyword clarity
+  const dateFormats = new Set(
+      datePatterns.map(d => (d.match(/^\d{4}$/) ? "year" : "month-year"))
+  );
 
-Return ONLY JSON:
-{
-  "score": 0-100,
-  "issues": ["...", "..."],
-  "suggestions": ["...", "..."]
-}
-`;
+  if (dateFormats.size > 1) {
+    issues.push("Inconsistent date formats detected");
+    suggestions.push("Standardize dates (e.g., Jan 2022 – Mar 2024)");
+  }
 
-  const userPrompt = `
-RESUME TEXT:
-${resume_text || "(empty)"}
-`;
+  // ---------- Density heuristic ----------
+  if (resumeText.length < 800) {
+    issues.push("Resume content may be too short");
+    suggestions.push("Add more detail to experience and skills");
+  }
 
-  const raw = await callGroq(env, { system: systemPrompt, user: userPrompt });
-  const fallback = {
-    score: 70,
-    issues: ["Model response was not valid JSON."],
-    suggestions: [
-      "Use a single-column layout with no tables.",
-      "Use standard headings: Experience, Education, Skills.",
-    ],
-  };
+  // ---------- Score ----------
+  let scoreLabel = "Good";
 
-  const parsed = safeParseJson(raw, fallback);
+  if (issues.length >= 5) scoreLabel = "Poor";
+  else if (issues.length >= 3) scoreLabel = "Fair";
 
-  return Response.json(parsed);
+  if (!issues.length) {
+    suggestions.push("Resume structure looks ATS-friendly");
+  }
+
+  return Response.json({
+    score: scoreLabel,
+    issues,
+    suggestions
+  });
 }

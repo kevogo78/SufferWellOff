@@ -1,92 +1,125 @@
-const DEFAULT_CLASSIFIER_MODEL = "mixtral-8x7b-32768";
-
-async function callGroq(env, { system, user, model = DEFAULT_CLASSIFIER_MODEL }) {
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.GROQ_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-      temperature: 0.2,
-    }),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("Groq match-score error:", res.status, text);
-    throw new Error("Groq API error");
-  }
-
-  const data = await res.json();
-  return data.choices[0].message.content;
-}
-
-function safeParseJson(text, fallback) {
-  try {
-    return JSON.parse(text);
-  } catch {
-    const first = text.indexOf("{");
-    const last = text.lastIndexOf("}");
-    if (first !== -1 && last !== -1 && last > first) {
-      try {
-        return JSON.parse(text.slice(first, last + 1));
-      } catch {
-        console.warn("safeParseJson(inner) failed in match-score");
-      }
-    }
-  }
-  return fallback;
-}
-
 export async function onRequestPost(context) {
-  const env = context.env;
-  const body = await context.request.json();
-  const { resume_text, job_description } = body;
+  const { request } = context;
 
-  const systemPrompt = `
-You are a resume/job match analyzer.
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return new Response("Invalid JSON body", { status: 400 });
+  }
 
-Compare a RESUME and a JOB DESCRIPTION and return:
-- Overall match score (0-100)
-- Keywords or skills that clearly appear in both
-- Important keywords/skills present in JD but missing in resume
-- Concrete recommendations to improve the match without lying
+  const resumeText = (body.resume_text || "").toLowerCase();
+  const jobText = (body.job_description || "").toLowerCase();
 
-Return ONLY JSON:
-{
-  "score": 0-100,
-  "matched_keywords": ["...", "..."],
-  "missing_keywords": ["...", "..."],
-  "recommendations": ["...", "..."]
-}
-`;
+  if (!resumeText || !jobText) {
+    return Response.json({
+      score: 0,
+      matched_keywords: [],
+      missing_keywords: [],
+      recommendations: ["Provide both resume and job description text"]
+    });
+  }
 
-  const userPrompt = `
-RESUME:
-${resume_text || "(empty)"}
+  // ---------- Tokenization ----------
+  function tokenize(text) {
+    return Array.from(
+        new Set(
+            text
+                .replace(/[^a-z0-9\s]/g, " ")
+                .split(/\s+/)
+                .filter(w => w.length > 2)
+        )
+    );
+  }
 
-JOB DESCRIPTION:
-${job_description || "(empty)"}
-`;
+  const resumeTokens = tokenize(resumeText);
+  const jobTokens = tokenize(jobText);
 
-  const raw = await callGroq(env, { system: systemPrompt, user: userPrompt });
+  // ---------- Skill keyword emphasis ----------
+  const skillKeywords = jobTokens.filter(word =>
+      [
+        "sql","python","java","linux","aws","azure","gcp","docker","kubernetes",
+        "siem","splunk","elastic","nmap","wireshark","tcp","ip","firewall",
+        "incident","response","threat","security","cloud","api","git","bash"
+      ].includes(word)
+  );
 
-  const fallback = {
-    score: 60,
-    matched_keywords: [],
-    missing_keywords: [],
-    recommendations: [
-      "Make sure your resume explicitly mentions the core tools and responsibilities from the job description.",
-    ],
-  };
+  // ---------- Responsibility verbs ----------
+  const responsibilityTerms = jobTokens.filter(word =>
+      [
+        "analyze","monitor","design","implement","maintain","support","develop",
+        "secure","automate","detect","respond","investigate","configure"
+      ].includes(word)
+  );
 
-  const parsed = safeParseJson(raw, fallback);
+  // ---------- Matching ----------
+  const matchedKeywords = jobTokens.filter(word =>
+      resumeTokens.includes(word)
+  );
 
-  return Response.json(parsed);
+  const missingKeywords = jobTokens.filter(word =>
+      !resumeTokens.includes(word)
+  );
+
+  // ---------- Weighted scoring ----------
+  const skillMatches = skillKeywords.filter(k =>
+      resumeTokens.includes(k)
+  ).length;
+
+  const responsibilityMatches = responsibilityTerms.filter(k =>
+      resumeTokens.includes(k)
+  ).length;
+
+  const skillScore = skillKeywords.length
+      ? (skillMatches / skillKeywords.length) * 50
+      : 25;
+
+  const responsibilityScore = responsibilityTerms.length
+      ? (responsibilityMatches / responsibilityTerms.length) * 35
+      : 17.5;
+
+  const terminologyScore = jobTokens.length
+      ? (matchedKeywords.length / jobTokens.length) * 15
+      : 7.5;
+
+  let totalScore = Math.round(
+      skillScore + responsibilityScore + terminologyScore
+  );
+
+  if (totalScore > 100) totalScore = 100;
+  if (totalScore < 0) totalScore = 0;
+
+  // ---------- Recommendations ----------
+  const recommendations = [];
+
+  if (skillKeywords.length && skillMatches < skillKeywords.length) {
+    recommendations.push(
+        "Consider adding or emphasizing missing technical skills from the job description"
+    );
+  }
+
+  if (responsibilityTerms.length && responsibilityMatches < responsibilityTerms.length) {
+    recommendations.push(
+        "Align experience bullets more closely with job responsibilities"
+    );
+  }
+
+  if (totalScore < 50) {
+    recommendations.push(
+        "Tailor resume sections to better reflect required tools and responsibilities"
+    );
+  }
+
+  if (!recommendations.length) {
+    recommendations.push(
+        "Resume aligns well with the job description"
+    );
+  }
+
+  return Response.json({
+    score: totalScore,
+    matched_keywords: matchedKeywords.slice(0, 20),
+    missing_keywords: missingKeywords.slice(0, 20),
+    recommendations
+  });
 }

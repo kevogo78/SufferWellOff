@@ -21,7 +21,7 @@
       --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.8);
       --shadow-subtle: 0 12px 24px rgba(15, 23, 42, 0.5);
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-        "Segoe UI", sans-serif;
+      "Segoe UI", sans-serif;
     }
 
     * {
@@ -483,7 +483,7 @@
     .preview {
       border-radius: var(--radius-lg);
       background: radial-gradient(circle at top right, rgba(34, 197, 94, 0.06), transparent 60%),
-        #020617;
+      #020617;
       border: 1px solid var(--border-subtle);
       box-shadow: var(--shadow-subtle);
       padding: 15px 15px 18px;
@@ -719,43 +719,40 @@
   </style>
 </head>
 <body>
-  <div class="app-shell">
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-logo">T</div>
-        <div class="brand-text">
-          <div class="brand-title">Tailr-AI</div>
-          <div class="brand-subtitle">Smart resume & job match studio</div>
-        </div>
+<div class="app-shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">T</div>
+      <div class="brand-text">
+        <div class="brand-title">Tailr-AI</div>
+        <div class="brand-subtitle">Smart resume & job match studio</div>
       </div>
+    </div>
 
-      <div class="sidebar-section-label">Tools</div>
-      <nav class="nav">
-        <button class="nav-button active" data-tool="master">
-          <span class="icon">📘</span>
-          <span class="label">Master Resume Builder</span>
-          <span class="badge">Start here</span>
-        </button>
-        <button class="nav-button" data-tool="tailor">
-          <span class="icon">🎯</span>
-          <span class="label">Tailor Resume</span>
-          <span class="badge">Per job</span>
-        </button>
-        <button class="nav-button" data-tool="ats">
-          <span class="icon">🧠</span>
-          <span class="label">ATS Optimizer</span>
-          <span class="badge">Scanner</span>
-        </button>
-        <button class="nav-button" data-tool="match">
-          <span class="icon">🔍</span>
-          <span class="label">Match Score</span>
-          <span class="badge">0–100</span>
-        </button>
-      </nav>
-
+    <div class="sidebar-section-label">Tools</div>
+    <nav class="nav">
+      <button class="nav-button active" data-tool="master">
+        <span class="icon">📘</span>
+        <span class="label">Master Resume Builder</span>
+        <span class="badge">Start here</span>
+      </button>
+      <button class="nav-button" data-tool="tailor">
+        <span class="icon">🎯</span>
+        <span class="label">Tailor Resume</span>
+        <span class="badge">Per job</span>
+      </button>
+      <button class="nav-button" data-tool="ats">
+        <span class="icon">🧠</span>
+        <span class="label">ATS Optimizer</span>
+        <span class="badge">Scanner</span>
+      </button>
+      <button class="nav-button" data-tool="match">
+        <span class="icon">🔍</span>
+        <span class="label">Match Score</span>
+        <span class="badge">0–100</span>
+      </button>
       <div class="sidebar-footer">
-        <div>Always export to <strong>Google Docs or Word</strong>, proofread, then share as PDF if needed.</div>
         <div class="pill-row">
           <div class="pill">
             <span>⚡</span>
@@ -767,796 +764,1083 @@
           </div>
         </div>
       </div>
-    </aside>
+    </nav>
+  </aside>
 
-    <!-- MAIN CONTENT -->
-    <main class="main">
-      <header class="main-header">
-        <div class="main-title-block">
-          <div class="main-title">Resume & Job Match Workspace</div>
-          <div class="main-subtitle">
-            Build a complete master resume, tailor it per job, optimize for ATS, and measure your match — all before you ever hit “Apply”.
-          </div>
+  <!-- MAIN CONTENT -->
+  <main class="main">
+    <header class="main-header">
+      <div class="main-title-block">
+        <div class="main-title">Resume & Job Match Workspace</div>
+        <div class="main-subtitle">
+          Build a complete master resume, tailor it per job, optimize for ATS, and measure your match — all before you ever hit “Apply”.
         </div>
-      </header>
+      </div>
+    </header>
 
-      <!-- TOOL PANELS -->
-      <section id="tool-master" class="tool-panel active">
-        <div class="content-layout">
-          <!-- LEFT: INPUT -->
-          <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title-block">
-                <div class="panel-title">Master Resume Builder</div>
-                <div class="panel-subtitle">
-                  Create your complete, all-in-one resume that stores every role, project, and skill.
-                </div>
+    <!-- MASTER RESUME PANEL -->
+    <section id="tool-master" class="tool-panel active">
+      <div class="content-layout">
+        <!-- LEFT: INPUT -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-block">
+              <div class="panel-title">Master Resume Builder</div>
+              <div class="panel-subtitle">
+                Create your complete, all-in-one resume that stores every role, project, and skill.
               </div>
             </div>
+          </div>
 
-            <hr class="section-divider" />
+          <hr class="section-divider" />
+
+          <!-- Name + Contact Fields -->
+          <div class="field">
+            <label for="mr-name">Full Name</label>
+            <input id="mr-name" class="input" placeholder="Jane Doe" />
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="mr-city">City</label>
+              <input id="mr-city" class="input" placeholder="Atlanta" />
+            </div>
+
+            <div class="field">
+              <label for="mr-state">State</label>
+              <input id="mr-state" class="input" placeholder="GA" maxlength="2" />
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="mr-phone">Phone</label>
+              <input id="mr-phone" class="input" placeholder="XXX-XXX-XXXX" />
+            </div>
+
+            <div class="field">
+              <label for="mr-email">Email</label>
+              <input id="mr-email" class="input" placeholder="janedoe123@gmail.com" />
+            </div>
+          </div>
 
           <div class="field">
-  <label for="mr-name">Full Name</label>
-  <input id="mr-name" class="input" placeholder="Jane Doe" />
-</div>
+            <label for="mr-links">Links (LinkedIn, GitHub, portfolio)</label>
+            <small>One per line. Example: linkedin.com/in/you</small>
+            <textarea id="mr-links" class="textarea"
+                      placeholder="linkedin.com/in/...&#10;github.com/...&#10;portfolio URL"></textarea>
+          </div>
 
-<div class="field">
-  <label for="mr-contact">Contact Line</label>
-  <small>Example: City, ST • email • phone • LinkedIn / GitHub</small>
-  <input id="mr-contact" class="input" placeholder="Atlanta, GA • ..." />
-</div>
+          <!-- Hidden combined contact line for AI + export -->
+          <input id="mr-contact" type="hidden" />
 
-<div class="field full-width">
-  <label for="mr-summary">Summary / Professional Profile</label>
-  <textarea id="mr-summary" class="textarea summary-wide"
-    placeholder="2–4 sentences describing your background..."></textarea>
-</div>
+          <div class="field full-width">
+            <label for="mr-summary">Summary / Professional Profile</label>
+            <textarea id="mr-summary" class="textarea summary-wide"
+                      placeholder="2–4 sentences describing your background..."></textarea>
+          </div>
 
-            <hr class="section-divider" />
+          <hr class="section-divider" />
 
+          <!-- Job-by-job experience input -->
+          <div class="field">
+            <label>Job History (one at a time)</label>
+            <small>Enter a role and dates. Tailr-AI will generate 4 bullets and skills, then clear the form so you can add another job.</small>
+          </div>
+
+          <div class="field-grid">
             <div class="field">
-              <label for="mr-experience">Experience</label>
-              <small>
-                List roles, internships, military experience, leadership, or relevant work — Tailr-AI will split
-                and structure each entry.
-              </small>
-              <textarea id="mr-experience" class="textarea"
-                placeholder="- Role, Company, Location, Dates&#10;- What you did, quantified results, tools/technologies used&#10;- One bullet per impact or achievement"></textarea>
-            </div>
-
-            <div class="field-grid">
-              <div class="field">
-                <label for="mr-education">Education</label>
-                <textarea id="mr-education" class="textarea"
-                  placeholder="Degree, Major, School, Grad date, GPA (optional), key coursework or honors."></textarea>
-              </div>
-              <div class="field">
-                <label for="mr-skills">Skills, Tools & Certifications</label>
-                <textarea id="mr-skills" class="textarea"
-                  placeholder="Security tools, languages, frameworks, cloud platforms, OS, certifications, etc."></textarea>
-              </div>
+              <label for="job-role">Role / Title</label>
+              <input id="job-role" class="input" placeholder="Sales Associate, Security Intern, Squad Leader..." />
             </div>
 
             <div class="field">
-              <label for="mr-projects">Projects & Achievements</label>
-              <textarea id="mr-projects" class="textarea"
-                placeholder="Portfolio projects, hackathons, open-source, research, awards, or volunteer leadership."></textarea>
-            </div>
-
-            <div class="panel-footer">
-              <div class="panel-footer-note">
-                Click “Refresh Preview” to see a clean resume layout. You’ll export to Google Docs or Word for final
-                editing.
-              </div>
-              <div class="button-row">
-                <button class="btn btn-ghost" id="btn-master-clear">
-                  <span class="icon">🧹</span>
-                  <span>Clear</span>
-                </button>
-                <!-- Hook this up to Groq later -->
-                <button class="btn btn-outline" id="btn-master-ai">
-                  <span class="icon">🤖</span>
-                  <span>Generate / Improve with AI</span>
-                </button>
-                <button class="btn btn-primary" id="btn-master-preview">
-                  <span class="icon">🔁</span>
-                  <span>Refresh Preview</span>
-                </button>
-              </div>
+              <label for="job-company">Company / Organization</label>
+              <input id="job-company" class="input" placeholder="Walmart, US Army, GGC IT..." />
             </div>
           </div>
 
-          <!-- RIGHT: PREVIEW + EXPORT -->
-          <div class="preview">
-            <div class="preview-header">
-              <div class="preview-title-block">
-                <div class="preview-title">Master Resume Preview</div>
-                <div class="preview-subtitle">
-                  Fully editable once exported to Google Docs or Word.
-                </div>
-              </div>
-              <div class="preview-meta" id="mr-preview-meta">
-                Ready to export
-              </div>
+          <div class="field-grid">
+            <div class="field">
+              <label for="job-dates">Dates</label>
+              <input id="job-dates" class="input" placeholder="2019–2022 or Jun 2023–Present" />
             </div>
 
-            <div class="preview-paper" id="mr-preview-paper">
-              <div class="preview-name" id="mr-preview-name">Your Name Here</div>
-              <div class="preview-contact" id="mr-preview-contact">
-                City, ST • email@domain.com • (000) 000-0000 • linkedin.com/in/you • github.com/you
-              </div>
-
-              <div class="preview-section">
-                <div class="preview-section-title">Professional Summary</div>
-                <div id="mr-preview-summary">
-                  Brief 2–4 sentence summary describing who you are, your strongest skills, and the type of role you’re
-                  targeting.
-                </div>
-              </div>
-
-              <div class="preview-section">
-                <div class="preview-section-title">Experience</div>
-                <div id="mr-preview-experience">
-                  <div class="preview-item">
-                    <div class="preview-item-title">Role Title — Company</div>
-                    <div class="preview-item-meta">Location • Dates</div>
-                    <ul class="preview-bullets">
-                      <li>Quantify an impact: created X, improved Y%, reduced Z.</li>
-                      <li>Mention tools / technologies used.</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div class="preview-section">
-                <div class="preview-section-title">Education</div>
-                <div id="mr-preview-education">
-                  B.S. in Something — School Name, City, ST (Month Year)
-                </div>
-              </div>
-
-              <div class="preview-section">
-                <div class="preview-section-title">Skills & Certifications</div>
-                <div id="mr-preview-skills">
-                  List skills in categories: Languages | Tools | Cloud | Security | Certifications.
-                </div>
-              </div>
-
-              <div class="preview-section">
-                <div class="preview-section-title">Projects & Achievements</div>
-                <div id="mr-preview-projects">
-                  Highlight 2–4 projects or achievements that prove your skills with measurable results.
-                </div>
-              </div>
+            <div class="field">
+              <label>&nbsp;</label>
+              <button id="btn-add-job" class="btn btn-primary" type="button">
+                <span class="icon">➕</span>
+                <span>Add Job + Generate Experience</span>
+              </button>
             </div>
+          </div>
 
-            <div class="panel-footer" style="margin-top: 10px;">
-              <div class="panel-footer-note">
-                <strong>Export workflow:</strong> Google Docs / Word → final edits & proofreading → optional PDF.
-              </div>
-              <div class="button-row">
-                <button class="btn btn-outline" id="btn-master-export-docs">
-                  <span class="icon">📄</span>
-                  <span>Export to Google Docs</span>
-                </button>
-                <button class="btn btn-outline" id="btn-master-export-word">
-                  <span class="icon">💾</span>
-                  <span>Export to Word (.docx)</span>
-                </button>
-              </div>
+          <div class="field">
+            <small>Added jobs:</small>
+            <div id="job-pills" class="pill-row"></div>
+          </div>
+
+          <!-- Hidden full experience text -->
+          <textarea id="mr-experience" class="textarea" style="display:none;"></textarea>
+
+          <div class="field-grid">
+            <div class="field">
+              <label for="mr-education">Education</label>
+              <textarea id="mr-education" class="textarea"
+                        placeholder="Degree, Major, School, Grad date, GPA (optional), key coursework or honors."></textarea>
+            </div>
+            <div class="field">
+              <label for="mr-skills">Skills, Tools & Certifications</label>
+              <textarea id="mr-skills" class="textarea"
+                        placeholder="Security tools, languages, frameworks, cloud platforms, OS, certifications, etc."></textarea>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="mr-projects">Projects & Achievements</label>
+            <textarea id="mr-projects" class="textarea"
+                      placeholder="Portfolio projects, hackathons, open-source, research, awards, or volunteer leadership."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="mr-certs">Certifications & Awards</label>
+            <textarea id="mr-certs" class="textarea"
+                      placeholder="CompTIA Security+, Google Cybersecurity Certificate, Dean’s List, etc."></textarea>
+          </div>
+
+          <div class="panel-footer">
+            <div class="panel-footer-note">
+              Click “Refresh Preview” to see a clean resume layout. You’ll export to Word (.docx) for final
+              editing.
+            </div>
+            <div class="button-row">
+              <button class="btn btn-ghost" id="btn-master-clear">
+                <span class="icon">🧹</span>
+                <span>Clear</span>
+              </button>
+              <button class="btn btn-outline" id="btn-master-ai">
+                <span class="icon">🤖</span>
+                <span>Generate Resume</span>
+              </button>
+              <button class="btn btn-primary" id="btn-master-preview">
+                <span class="icon">🔁</span>
+                <span>Refresh Preview</span>
+              </button>
             </div>
           </div>
         </div>
-      </section>
 
-      <!-- TAILOR RESUME PANEL -->
-      <section id="tool-tailor" class="tool-panel">
-        <div class="content-layout">
-          <!-- LEFT -->
-          <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title-block">
-                <div class="panel-title">Tailor Resume</div>
-                <div class="panel-subtitle">
-                  Take your master resume and shape it to a specific job description.
+        <!-- RIGHT: PREVIEW + EXPORT -->
+        <div class="preview">
+          <div class="preview-header">
+            <div class="preview-title-block">
+              <div class="preview-title">Master Resume Preview</div>
+              <div class="preview-subtitle">
+                Fully editable once exported to Word (.docx).
+              </div>
+            </div>
+            <div class="preview-meta" id="mr-preview-meta">
+              Ready to export
+            </div>
+          </div>
+
+          <div class="preview-paper" id="mr-preview-paper">
+            <div class="preview-name" id="mr-preview-name">Your Name Here</div>
+            <div class="preview-contact" id="mr-preview-contact">
+              City, ST • email@domain.com • (000) 000-0000 • linkedin.com/in/you • github.com/you
+            </div>
+
+            <div class="preview-section">
+              <div class="preview-section-title">Professional Summary</div>
+              <div id="mr-preview-summary">
+                Brief 2–4 sentence summary describing who you are, your strongest skills, and the type of role you’re
+                targeting.
+              </div>
+            </div>
+
+            <div class="preview-section">
+              <div class="preview-section-title">Experience</div>
+              <div id="mr-preview-experience">
+                <div class="preview-item">
+                  <div class="preview-item-title">Role Title — Company</div>
+                  <div class="preview-item-meta">Location • Dates</div>
+                  <ul class="preview-bullets">
+                    <li>Quantify an impact: created X, improved Y%, reduced Z.</li>
+                    <li>Mention tools / technologies used.</li>
+                  </ul>
                 </div>
               </div>
             </div>
 
-            <hr class="section-divider" />
-
-            <div class="field">
-              <label for="tr-job-title">Job Title</label>
-              <input id="tr-job-title" class="input" placeholder="e.g., Junior Security Analyst, SOC Analyst I" />
+            <div class="preview-section">
+              <div class="preview-section-title">Education</div>
+              <div id="mr-preview-education">
+                B.S. in Something — School Name, City, ST (Month Year)
+              </div>
             </div>
 
-            <div class="field">
-              <label for="tr-job-desc">Job Description</label>
-              <small>Paste the full job posting. Tailr-AI will extract required skills, keywords, and responsibilities.</small>
-              <textarea id="tr-job-desc" class="textarea"
-                placeholder="Paste job description here..."></textarea>
+            <div class="preview-section">
+              <div class="preview-section-title">Skills & Certifications</div>
+              <div id="mr-preview-skills">
+                List skills in categories: Languages | Tools | Cloud | Security | Certifications.
+              </div>
             </div>
-            <div class="field">
+
+            <div class="preview-section">
+              <div class="preview-section-title">Certifications & Awards</div>
+              <div id="mr-preview-certs">
+                List certifications and awards that reinforce your skills and achievements.
+              </div>
+            </div>
+
+            <div class="preview-section">
+              <div class="preview-section-title">Projects & Achievements</div>
+              <div id="mr-preview-projects">
+                Highlight 2–4 projects or achievements that prove your skills with measurable results.
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-footer" style="margin-top: 10px;">
+            <div class="button-row">
+              <button class="btn btn-outline" id="btn-master-export-word">
+                <span class="icon">💾</span>
+                <span>Export (.docx)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAILOR RESUME PANEL -->
+    <section id="tool-tailor" class="tool-panel">
+      <div class="content-layout">
+        <!-- LEFT -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-block">
+              <div class="panel-title">Tailor Resume</div>
+              <div class="panel-subtitle">
+                Take your master resume and shape it to a specific job description.
+              </div>
+            </div>
+          </div>
+
+          <hr class="section-divider" />
+
+          <div class="field">
             <label for="tr-job-url">Job Posting URL (optional)</label>
             <small>Paste a link to the job posting. Tailr-AI will try to fetch and extract the job description automatically.</small>
             <input id="tr-job-url" class="input" placeholder="https://careers.company.com/job/12345" />
-            </div>
-            <div class="field">
-              <label for="tr-source">Source / Master Resume Version</label>
-              <small>
-                In future versions this will list your saved master resumes. For now, Tailr-AI will use whatever you’ve
-                built on the Master Resume tab.
-              </small>
-              <select id="tr-source" class="select">
-                <option value="current">Use current Master Resume draft</option>
-                <option value="paste">I’ll paste a resume below</option>
-              </select>
-            </div>
-
-            <div class="field" id="tr-resume-wrapper" style="display: none;">
-              <label for="tr-resume-raw">Paste Resume to Tailor</label>
-              <textarea id="tr-resume-raw" class="textarea"
-                placeholder="If you selected 'paste', drop your existing resume here."></textarea>
-            </div>
-
-            <div class="panel-footer">
-              <div class="panel-footer-note">
-                Tailoring focuses on relevance and keywords. Export the tailored version to Docs/Word for final edits.
-              </div>
-              <div class="button-row">
-                <button class="btn btn-outline" id="btn-tailor-analyze">
-                  <span class="icon">🧠</span>
-                  <span>Analyze & Tailor (AI)</span>
-                </button>
-              </div>
-            </div>
           </div>
 
-          <!-- RIGHT -->
-          <div class="preview">
-            <div class="preview-header">
-              <div class="preview-title-block">
-                <div class="preview-title">Tailored Resume Preview</div>
-                <div class="preview-subtitle">
-                  Focused on this specific job’s requirements and language.
-                </div>
-              </div>
-              <div class="pill-score" id="tr-match-pill">
-                <span class="dot"></span>
-                <span><strong>Match Score:</strong> <span id="tr-match-score">–</span>/100</span>
-              </div>
+          <div class="field">
+            <label for="tr-job-title">Job Title</label>
+            <input id="tr-job-title" class="input" placeholder="e.g., Junior Security Analyst, SOC Analyst I" />
+          </div>
+
+          <div class="field">
+            <label for="tr-job-desc">Job Description</label>
+            <small>Paste the full job posting. Tailr-AI will extract required skills, keywords, and responsibilities.</small>
+            <textarea id="tr-job-desc" class="textarea"
+                      placeholder="Paste job description here..."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="tr-source">Source / Master Resume Version</label>
+            <small>
+              In future versions this will list your saved master resumes. For now, Tailr-AI will use whatever you’ve
+              built on the Master Resume tab.
+            </small>
+            <select id="tr-source" class="select">
+              <option value="current">Use current Master Resume draft</option>
+              <option value="paste">Upload Resume (.docx or .pdf)</option>
+            </select>
+          </div>
+
+          <div class="field" id="tr-resume-wrapper" style="display: none;">
+            <label for="tr-resume-raw">Paste Resume to Tailor</label>
+            <textarea id="tr-resume-raw" class="textarea"
+                      placeholder="If you selected 'paste', drop your existing resume here."></textarea>
+          </div>
+
+          <div class="panel-footer">
+            <div class="panel-footer-note">
+              Tailoring focuses on relevance and keywords. Export the tailored version to Word (.docx) for final edits.
             </div>
-
-            <div class="preview-paper" id="tr-preview-paper">
-              <div class="preview-name" id="tr-preview-name">Your Name Here</div>
-              <div class="preview-contact" id="tr-preview-contact">
-                Contact details pulled from your master resume.
-              </div>
-
-              <div class="preview-section">
-                <div class="preview-section-title">Profile (Aligned to Role)</div>
-                <div id="tr-preview-summary">
-                  Once analyzed, this section will highlight why you’re a strong fit specifically for the job you pasted.
-                </div>
-              </div>
-
-              <div class="preview-section">
-                <div class="preview-section-title">Key Skills for This Role</div>
-                <div id="tr-preview-skills">
-                  Tailr-AI will prioritize and reorder skills based on the job description and required tools.
-                </div>
-              </div>
-
-              <div class="preview-section">
-                <div class="preview-section-title">Relevant Experience</div>
-                <div id="tr-preview-experience">
-                  Experience bullets will be filtered and rewritten to mirror language and focus areas in the posting.
-                </div>
-              </div>
-
-              <div class="preview-section">
-                <div class="preview-section-title">Extras to Consider</div>
-                <div id="tr-preview-extras">
-                  Suggestions for optional lines or supporting examples you can add manually before sending.
-                </div>
-              </div>
-            </div>
-
-            <div class="panel-footer" style="margin-top: 10px;">
-              <div class="panel-footer-note">
-                Export, proofread, and keep only what truly reflects your experience — no blind copy/paste.
-              </div>
-              <div class="button-row">
-                <button class="btn btn-outline" id="btn-tailor-export-docs">
-                  <span class="icon">📄</span>
-                  <span>Export to Google Docs</span>
-                </button>
-                <button class="btn btn-outline" id="btn-tailor-export-word">
-                  <span class="icon">💾</span>
-                  <span>Export to Word (.docx)</span>
-                </button>
-              </div>
+            <div class="button-row">
+              <button class="btn btn-outline" id="btn-tailor-analyze">
+                <span class="icon">🧠</span>
+                <span>Tailor Resume</span>
+              </button>
             </div>
           </div>
         </div>
-      </section>
 
-      <!-- ATS OPTIMIZER PANEL -->
-      <section id="tool-ats" class="tool-panel">
-        <div class="content-layout">
-          <!-- LEFT -->
-          <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title-block">
-                <div class="panel-title">ATS Optimizer</div>
-                <div class="panel-subtitle">
-                  Check if your resume can be cleanly read by Applicant Tracking Systems and fix issues.
-                </div>
+        <!-- RIGHT -->
+        <div class="preview">
+          <div class="preview-header">
+            <div class="preview-title-block">
+              <div class="preview-title">Tailored Resume Preview</div>
+              <div class="preview-subtitle">
+                Focused on this specific job’s requirements and language.
+              </div>
+            </div>
+            <div class="pill-score" id="tr-match-pill">
+              <span class="dot"></span>
+              <span><strong>Match Score:</strong> <span id="tr-match-score">–</span>/100</span>
+            </div>
+          </div>
+
+          <div class="preview-paper" id="tr-preview-paper">
+            <div class="preview-name" id="tr-preview-name">Your Name Here</div>
+            <div class="preview-contact" id="tr-preview-contact">
+              Contact details pulled from your master resume.
+            </div>
+
+            <div class="preview-section">
+              <div class="preview-section-title">Profile (Aligned to Role)</div>
+              <div id="tr-preview-summary">
+                Once analyzed, this section will highlight why you’re a strong fit specifically for the job you pasted.
               </div>
             </div>
 
-            <hr class="section-divider" />
-
-            <div class="field">
-              <label for="ats-resume">Paste Resume</label>
-              <small>
-                Paste plain text from Word/Google Docs — avoid tables, columns, and heavy graphics. Tailr-AI will flag
-                formatting problems.
-              </small>
-              <textarea id="ats-resume" class="textarea" placeholder="Paste your resume text here..."></textarea>
+            <div class="preview-section">
+              <div class="preview-section-title">Key Skills for This Role</div>
+              <div id="tr-preview-skills">
+                Tailr-AI will prioritize and reorder skills based on the job description and required tools.
+              </div>
             </div>
 
-            <div class="panel-footer">
-              <div class="panel-footer-note">
-                This tool focuses on structure, parse-ability, and keyword clarity — not visual design.
+            <div class="preview-section">
+              <div class="preview-section-title">Relevant Experience</div>
+              <div id="tr-preview-experience">
+                Experience bullets will be filtered and rewritten to mirror language and focus areas in the posting.
               </div>
-              <div class="button-row">
-                <button class="btn btn-outline" id="btn-ats-scan">
-                  <span class="icon">🧠</span>
-                  <span>Run ATS Scan</span>
-                </button>
+            </div>
+
+            <div class="preview-section">
+              <div class="preview-section-title">Extras to Consider</div>
+              <div id="tr-preview-extras">
+                Suggestions for optional lines or supporting examples you can add manually before sending.
               </div>
             </div>
           </div>
 
-          <!-- RIGHT -->
-          <div class="preview">
-            <div class="preview-header">
-              <div class="preview-title-block">
-                <div class="preview-title">ATS Scan Results</div>
-                <div class="preview-subtitle">
-                  Issues to fix before uploading to portals.
-                </div>
-              </div>
-              <div class="pill-score bad" id="ats-score-pill">
-                <span class="dot"></span>
-                <span><strong>ATS Readability:</strong> <span id="ats-score-label">Pending</span></span>
-              </div>
+          <div class="panel-footer" style="margin-top: 10px;">
+            <div class="panel-footer-note">
+              Export, proofread, and keep only what truly reflects your experience — no blind copy/paste.
             </div>
-
-            <div class="results-box" id="ats-results">
-              <strong>How this works:</strong>
-              <ul class="results-list">
-                <li>Flags columns, tables, graphics, or text boxes that ATS might ignore.</li>
-                <li>Checks for clear section headings (Experience, Education, Skills, etc.).</li>
-                <li>Looks for consistent bullet structure and date formatting.</li>
-                <li>Suggests simpler formatting so your content is actually read.</li>
-              </ul>
-              <p style="margin-top:6px;">
-                Paste a resume and run the scan to see concrete suggestions here.
-              </p>
+            <div class="button-row">
+              <button class="btn btn-outline" id="btn-tailor-export-word">
+                <span class="icon">💾</span>
+                <span>Export to Word (.docx)</span>
+              </button>
             </div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- MATCH SCORE PANEL -->
-      <section id="tool-match" class="tool-panel">
-        <div class="content-layout">
-          <!-- LEFT -->
-          <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title-block">
-                <div class="panel-title">Match Score</div>
-                <div class="panel-subtitle">
-                  Compare your resume against a job description and see how close the fit is.
-                </div>
-              </div>
-            </div>
-
-            <hr class="section-divider" />
-
-            <div class="field">
-              <label for="match-resume">Resume</label>
-              <textarea id="match-resume" class="textarea"
-                placeholder="Paste your resume text here for comparison."></textarea>
-            </div>
-
-            <div class="field">
-              <label for="match-job">Job Description</label>
-              <textarea id="match-job" class="textarea"
-                placeholder="Paste the target job description here."></textarea>
-            </div>
-
-            <div class="panel-footer">
-              <div class="panel-footer-note">
-                Aim for a strong match score, but never fake experience or skills. Tailr-AI is a coach, not a cheat code.
-              </div>
-              <div class="button-row">
-                <button class="btn btn-outline" id="btn-match-score">
-                  <span class="icon">📊</span>
-                  <span>Calculate Match Score</span>
-                </button>
+    <!-- ATS OPTIMIZER PANEL -->
+    <section id="tool-ats" class="tool-panel">
+      <div class="content-layout">
+        <!-- LEFT -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-block">
+              <div class="panel-title">ATS Optimizer</div>
+              <div class="panel-subtitle">
+                Check if your resume can be cleanly read by Applicant Tracking Systems and fix issues.
               </div>
             </div>
           </div>
 
-          <!-- RIGHT -->
-          <div class="preview">
-            <div class="preview-header">
-              <div class="preview-title-block">
-                <div class="preview-title">Match Insights</div>
-                <div class="preview-subtitle">
-                  Where you align well, and where you’re light.
-                </div>
-              </div>
-              <div class="pill-score" id="match-score-pill">
-                <span class="dot"></span>
-                <span><strong>Score:</strong> <span id="match-score-label">–</span>/100</span>
-              </div>
-            </div>
+          <hr class="section-divider" />
 
-            <div class="results-box" id="match-results">
-              <strong>What you’ll see here:</strong>
-              <ul class="results-list">
-                <li>Overall match score (0–100).</li>
-                <li>Skills you already cover well.</li>
-                <li>Keywords and responsibilities you’re missing.</li>
-                <li>Suggestions to tweak your resume before tailoring.</li>
-              </ul>
-              <p style="margin-top:6px;">
-                Paste your resume and job description, then calculate to see detailed insights.
-              </p>
+          <div class="field">
+            <label for="ats-resume">Paste Resume</label>
+            <small>
+              Paste plain text from Word — avoid tables, columns, and heavy graphics. Tailr-AI will flag
+              formatting problems.
+            </small>
+            <textarea id="ats-resume" class="textarea" placeholder="Paste your resume text here..."></textarea>
+          </div>
+
+          <div class="panel-footer">
+            <div class="panel-footer-note">
+              This tool focuses on structure, parse-ability, and keyword clarity — not visual design.
+            </div>
+            <div class="button-row">
+              <button class="btn btn-outline" id="btn-ats-scan">
+                <span class="icon">🧠</span>
+                <span>Run ATS Scan</span>
+              </button>
             </div>
           </div>
         </div>
-      </section>
-    </main>
-  </div>
 
- <script>
-// ========================
-// NAV MENU SWITCHING
-// ========================
-const navButtons = document.querySelectorAll(".nav-button");
-const toolPanels = document.querySelectorAll(".tool-panel");
+        <!-- RIGHT -->
+        <div class="preview">
+          <div class="preview-header">
+            <div class="preview-title-block">
+              <div class="preview-title">ATS Scan Results</div>
+              <div class="preview-subtitle">
+                Issues to fix before uploading to portals.
+              </div>
+            </div>
+            <div class="pill-score bad" id="ats-score-pill">
+              <span class="dot"></span>
+              <span><strong>ATS Readability:</strong> <span id="ats-score-label">Pending</span></span>
+            </div>
+          </div>
 
-navButtons.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const tool = btn.dataset.tool;
+          <div class="results-box" id="ats-results">
+            <strong>How this works:</strong>
+            <ul class="results-list">
+              <li>Flags columns, tables, graphics, or text boxes that ATS might ignore.</li>
+              <li>Checks for clear section headings (Experience, Education, Skills, etc.).</li>
+              <li>Looks for consistent bullet structure and date formatting.</li>
+              <li>Suggests simpler formatting so your content is actually read.</li>
+            </ul>
+            <p style="margin-top:6px;">
+              Paste a resume and run the scan to see concrete suggestions here.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    navButtons.forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
+    <!-- MATCH SCORE PANEL -->
+    <section id="tool-match" class="tool-panel">
+      <div class="content-layout">
+        <!-- LEFT -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-block">
+              <div class="panel-title">Match Score</div>
+              <div class="panel-subtitle">
+                Compare your resume against a job description and see how close the fit is.
+              </div>
+            </div>
+          </div>
 
-    toolPanels.forEach((panel) => {
-      panel.id === `tool-${tool}`
-        ? panel.classList.add("active")
-        : panel.classList.remove("active");
+          <hr class="section-divider" />
+
+          <div class="field">
+            <label for="match-resume">Resume</label>
+            <textarea id="match-resume" class="textarea"
+                      placeholder="Paste your resume text here for comparison."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="match-job">Job Description</label>
+            <textarea id="match-job" class="textarea"
+                      placeholder="Paste the target job description here."></textarea>
+          </div>
+
+          <div class="panel-footer">
+            <div class="panel-footer-note">
+              Aim for a strong match score, but never fake experience or skills. Tailr-AI is a coach, not a cheat code.
+            </div>
+            <div class="button-row">
+              <button class="btn btn-outline" id="btn-match-score">
+                <span class="icon">📊</span>
+                <span>Calculate Match Score</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="preview">
+          <div class="preview-header">
+            <div class="preview-title-block">
+              <div class="preview-title">Match Insights</div>
+              <div class="preview-subtitle">
+                Where you align well, and where you’re light.
+              </div>
+            </div>
+            <div class="pill-score" id="match-score-pill">
+              <span class="dot"></span>
+              <span><strong>Score:</strong> <span id="match-score-label">–</span>/100</span>
+            </div>
+          </div>
+
+          <div class="results-box" id="match-results">
+            <strong>What you’ll see here:</strong>
+            <ul class="results-list">
+              <li>Overall match score (0–100).</li>
+              <li>Skills you already cover well.</li>
+              <li>Keywords and responsibilities you’re missing.</li>
+              <li>Suggestions to tweak your resume before tailoring.</li>
+            </ul>
+            <p style="margin-top:6px;">
+              Paste your resume and job description, then calculate to see detailed insights.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  // ========================
+  // NAV MENU SWITCHING
+  // ========================
+  const navButtons = document.querySelectorAll(".nav-button");
+  const toolPanels = document.querySelectorAll(".tool-panel");
+
+  navButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tool = btn.dataset.tool;
+
+      navButtons.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      toolPanels.forEach((panel) => {
+        panel.id === `tool-${tool}`
+                ? panel.classList.add("active")
+                : panel.classList.remove("active");
+      });
     });
   });
-});
 
+  // ========================
+  // HELPER FUNCTIONS
+  // ========================
+  async function postJSON(url, data) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
 
-// ========================
-// HELPER FUNCTIONS
-// ========================
-async function postJSON(url, data) {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
+    const contentType = res.headers.get("Content-Type") || "";
 
-  const contentType = res.headers.get("Content-Type") || "";
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`HTTP ${res.status}: ${errText}`);
+    }
 
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`HTTP ${res.status}: ${errText}`);
+    if (contentType.includes("application/json")) {
+      return res.json();
+    }
+
+    // fallback to text (prevents JSON parse crash)
+    return { error: await res.text() };
   }
 
-  if (contentType.includes("application/json")) {
-    return res.json();
+  function downloadFile(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
-  // fallback to text (prevents JSON parse crash)
-  return { error: await res.text() };
-}
+  function normalizePhone(phone) {
+    const digits = (phone || "").replace(/\D/g, "");
+    if (digits.length === 10) {
+      return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    }
+    return phone || "";
+  }
 
-// ========================
-// MASTER RESUME — PREVIEW
-// ========================
-const mrName = document.getElementById("mr-name");
-const mrContact = document.getElementById("mr-contact");
-const mrSummary = document.getElementById("mr-summary");
-const mrExperience = document.getElementById("mr-experience");
-const mrEducation = document.getElementById("mr-education");
-const mrSkills = document.getElementById("mr-skills");
-const mrProjects = document.getElementById("mr-projects");
+  function buildContactLine() {
+    const city = (mrCity.value || "").trim();
+    const state = (mrState.value || "").trim().toUpperCase();
+    const email = (mrEmail.value || "").trim();
+    const phone = normalizePhone(mrPhone.value || "");
+    const linksRaw = (mrLinks.value || "")
+            .split(/\r?\n|,/)
+            .map((s) => s.trim())
+            .filter(Boolean);
 
-// Tailor fields also used by Master AI
-const trJobTitle = document.getElementById("tr-job-title");
-const trJobDesc  = document.getElementById("tr-job-desc");
-const trJobUrl   = document.getElementById("tr-job-url");
+    const pieces = [];
 
-const mrPreviewName = document.getElementById("mr-preview-name");
-const mrPreviewContact = document.getElementById("mr-preview-contact");
-const mrPreviewSummary = document.getElementById("mr-preview-summary");
-const mrPreviewExperience = document.getElementById("mr-preview-experience");
-const mrPreviewEducation = document.getElementById("mr-preview-education");
-const mrPreviewSkills = document.getElementById("mr-preview-skills");
-const mrPreviewProjects = document.getElementById("mr-preview-projects");
-const mrPreviewMeta = document.getElementById("mr-preview-meta");
+    if (city || state) {
+      const loc =
+              city && state ? `${city}, ${state}` : city || state || "City, ST";
+      pieces.push(loc);
+    }
 
-function refreshMasterPreview() {
-  mrPreviewName.textContent = (mrName.value || "YOUR NAME HERE").toUpperCase();
-  mrPreviewContact.textContent =
-    mrContact.value ||
-    "City, ST • email@domain.com • (000) 000-0000 • linkedin.com/in/you";
+    if (email) pieces.push(email);
+    if (phone) pieces.push(phone);
+    if (linksRaw.length) pieces.push(linksRaw.join(" • "));
 
-  mrPreviewSummary.textContent =
-    mrSummary.value || "Your professional summary will appear here.";
+    if (!pieces.length) {
+      return "City, ST • email@domain.com • (000) 000-0000";
+    }
 
-  mrPreviewExperience.textContent =
-    mrExperience.value || "Experience section will appear here.";
+    return pieces.join(" • ");
+  }
 
-  mrPreviewEducation.textContent =
-    mrEducation.value || "Education section will appear here.";
+  function syncContactLine() {
+    mrContact.value = buildContactLine();
+  }
 
-  mrPreviewSkills.textContent =
-    mrSkills.value || "Skills appear here.";
+  // ========================
+  // MASTER RESUME — FIELDS
+  // ========================
+  const mrName = document.getElementById("mr-name");
 
-  mrPreviewProjects.textContent =
-    mrProjects.value || "Project highlights will appear here.";
+  // Contact pieces
+  const mrCity = document.getElementById("mr-city");
+  const mrState = document.getElementById("mr-state");
+  const mrPhone = document.getElementById("mr-phone");
+  const mrEmail = document.getElementById("mr-email");
+  const mrLinks = document.getElementById("mr-links");
+  // Hidden combined contact line
+  const mrContact = document.getElementById("mr-contact");
 
-  mrPreviewMeta.textContent = "Preview updated — ready to export.";
-}
+  const mrSummary = document.getElementById("mr-summary");
+  const mrExperience = document.getElementById("mr-experience");
+  const mrEducation = document.getElementById("mr-education");
+  const mrSkills = document.getElementById("mr-skills");
+  const mrProjects = document.getElementById("mr-projects");
+  const mrCerts = document.getElementById("mr-certs");
 
-document.getElementById("btn-master-preview").onclick = refreshMasterPreview;
+  // Job-by-job inputs
+  const jobRoleInput = document.getElementById("job-role");
+  const jobCompanyInput = document.getElementById("job-company");
+  const jobDatesInput = document.getElementById("job-dates");
+  const jobPillsContainer = document.getElementById("job-pills");
+  let jobEntries = []; // { id, role, company, dates, block }
 
-document.getElementById("btn-master-clear").onclick = () => {
-  [
-    mrName,
-    mrContact,
-    mrSummary,
-    mrExperience,
-    mrEducation,
-    mrSkills,
-    mrProjects
-  ].forEach((el) => (el.value = ""));
-  refreshMasterPreview();
-};
+  // Tailor fields also used by Master AI
+  const trJobTitle = document.getElementById("tr-job-title");
+  const trJobDesc = document.getElementById("tr-job-desc");
+  const trJobUrl = document.getElementById("tr-job-url");
 
+  // PREVIEW ELEMENTS
+  const mrPreviewName = document.getElementById("mr-preview-name");
+  const mrPreviewContact = document.getElementById("mr-preview-contact");
+  const mrPreviewSummary = document.getElementById("mr-preview-summary");
+  const mrPreviewExperience = document.getElementById("mr-preview-experience");
+  const mrPreviewEducation = document.getElementById("mr-preview-education");
+  const mrPreviewSkills = document.getElementById("mr-preview-skills");
+  const mrPreviewProjects = document.getElementById("mr-preview-projects");
+  const mrPreviewCerts = document.getElementById("mr-preview-certs");
+  const mrPreviewMeta = document.getElementById("mr-preview-meta");
 
-// ================================
-// MASTER RESUME — AI GENERATION
-// ================================
-document.getElementById("btn-master-ai").onclick = async () => {
-  const payload = {
-    name: mrName.value,
-    contact: mrContact.value,
-    summary: mrSummary.value,
-    experience: mrExperience.value,
-    education: mrEducation.value,
-    skills: mrSkills.value,
-    projects: mrProjects.value
+  function rebuildExperienceFromJobs() {
+    const blocks = jobEntries.map((job) => job.block);
+    const fullText = blocks.join("\n\n");
+    mrExperience.value = fullText;
+
+    mrPreviewExperience.textContent =
+            fullText || "Experience section will appear here.";
+  }
+
+  function renderJobPills() {
+    jobPillsContainer.innerHTML = "";
+
+    if (!jobEntries.length) {
+      const span = document.createElement("span");
+      span.className = "pill";
+      span.textContent = "No jobs added yet.";
+      jobPillsContainer.appendChild(span);
+      return;
+    }
+
+    jobEntries.forEach((job) => {
+      const pill = document.createElement("div");
+      pill.className = "pill";
+      pill.style.cursor = "default";
+
+      const label = document.createElement("span");
+      label.innerHTML = `<strong>${job.role}</strong> — ${job.dates}`;
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.textContent = "✕";
+      removeBtn.style.border = "none";
+      removeBtn.style.background = "transparent";
+      removeBtn.style.cursor = "pointer";
+      removeBtn.style.color = "#9ca3af";
+      removeBtn.style.fontSize = "10px";
+      removeBtn.onclick = () => {
+        jobEntries = jobEntries.filter((j) => j.id !== job.id);
+        rebuildExperienceFromJobs();
+        renderJobPills();
+        refreshMasterPreview();
+      };
+
+      pill.appendChild(label);
+      pill.appendChild(removeBtn);
+      jobPillsContainer.appendChild(pill);
+    });
+  }
+
+  // ========================
+  // MASTER RESUME — PREVIEW
+  // ========================
+  function refreshMasterPreview() {
+    mrPreviewName.textContent = (mrName.value || "Your Name Here").toUpperCase();
+    syncContactLine();
+    mrPreviewContact.textContent =
+            mrContact.value ||
+            "City, ST • email@domain.com • (000) 000-0000 • linkedin.com/in/you";
+
+    mrPreviewSummary.textContent =
+            mrSummary.value || "Your professional summary will appear here.";
+
+    // Experience based on hidden field (populated from jobs)
+    mrPreviewExperience.textContent =
+            mrExperience.value || "Experience section will appear here.";
+
+    mrPreviewEducation.textContent =
+            mrEducation.value || "Education section will appear here.";
+
+    mrPreviewSkills.textContent =
+            mrSkills.value || "Skills appear here.";
+
+    mrPreviewProjects.textContent =
+            mrProjects.value || "Project highlights will appear here.";
+
+    mrPreviewCerts.textContent =
+            mrCerts.value || "List certifications and awards here.";
+
+    mrPreviewMeta.textContent = "Preview updated — ready to export.";
+  }
+
+  document.getElementById("btn-master-preview").onclick = refreshMasterPreview;
+
+  document.getElementById("btn-master-clear").onclick = () => {
+    [
+      mrName,
+      mrCity,
+      mrState,
+      mrPhone,
+      mrEmail,
+      mrLinks,
+      mrSummary,
+      mrExperience,
+      mrEducation,
+      mrSkills,
+      mrProjects,
+      mrCerts,
+    ].forEach((el) => (el.value = ""));
+    jobEntries = [];
+    renderJobPills();
+    refreshMasterPreview();
   };
 
-  const data = await postJSON("/master/generate-ai", payload);
+  // ================================
+  // MASTER RESUME — AI GENERATION
+  // (Keeps experience coming from job system, focuses AI on other sections)
+  // ================================
+  document.getElementById("btn-master-ai").onclick = async () => {
+    try {
+      rebuildExperienceFromJobs();
+      syncContactLine();
 
-  mrSummary.value = data.summary;
-  mrExperience.value = data.experience;
-  mrEducation.value = data.education;
-  mrSkills.value = data.skills;
-  mrProjects.value = data.projects;
+      const payload = {
+        name: mrName.value,
+        contact: mrContact.value,
+        summary: mrSummary.value,
+        experience: mrExperience.value,
+        education: mrEducation.value,
+        skills: mrSkills.value,
+        projects: mrProjects.value,
+        certifications: mrCerts.value,
+      };
 
-  refreshMasterPreview();
-};
+      const data = await postJSON("/master/generate-ai", payload);
 
-// ================================
-// MASTER RESUME — EXPORT TO GOOGLE DOCS
-// ================================
-document.getElementById("btn-master-export-docs").onclick = async () => {
-  const payload = {
-    resume: {
-      name: mrName.value,
-      contact: mrContact.value,
-      summary: mrSummary.value,
-      experience: mrExperience.value,
-      education: mrEducation.value,
-      skills: mrSkills.value,
-      projects: mrProjects.value,
-    },
+      // Let AI refine these, but keep experience managed by jobEntries
+      if (data.summary) mrSummary.value = data.summary;
+      if (data.education) mrEducation.value = data.education;
+      if (data.skills) mrSkills.value = data.skills;
+      if (data.projects) mrProjects.value = data.projects;
+      if (data.certifications) mrCerts.value = data.certifications;
+
+      refreshMasterPreview();
+    } catch (err) {
+      console.error(err);
+      alert("Error generating with AI. Check Worker logs.");
+    }
   };
 
-  const data = await postJSON("/master/export-docs", payload);
-  window.open(data.url, "_blank");
-};
+  // ================================
+  // MASTER RESUME — SUMMARY FROM INFO
+  // ================================
+  document.getElementById("btn-generate-summary").onclick = async () => {
+    try {
+      rebuildExperienceFromJobs();
+      syncContactLine();
 
+      const payload = {
+        contact: mrContact.value,
+        experience: mrExperience.value,
+        education: mrEducation.value,
+        skills: mrSkills.value,
+        projects: mrProjects.value,
+        certifications: mrCerts.value,
+      };
 
-// ================================
-// MASTER RESUME — EXPORT TO WORD
-// ================================
-document.getElementById("btn-master-export-word").onclick = async () => {
-  const payload = {
-    resume: {
-      name: mrName.value,
-      contact: mrContact.value,
-      summary: mrSummary.value,
-      experience: mrExperience.value,
-      education: mrEducation.value,
-      skills: mrSkills.value,
-      projects: mrProjects.value,
-    },
+      const data = await postJSON("/master/summary", payload);
+
+      mrSummary.value = data.summary;
+      refreshMasterPreview();
+    } catch (err) {
+      console.error(err);
+      alert("Error generating summary. Check Worker logs.");
+    }
   };
 
-  const res = await fetch("/master/export-word", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+  // ================================
+  // MASTER RESUME — EXPORT TO WORD
+  // ================================
+  document.getElementById("btn-master-export-word").onclick = async () => {
+    rebuildExperienceFromJobs();
+    syncContactLine();
+
+    const payload = {
+      resume: {
+        name: mrName.value,
+        contact: mrContact.value,
+        summary: mrSummary.value,
+        experience: mrExperience.value,
+        education: mrEducation.value,
+        skills: mrSkills.value,
+        projects: mrProjects.value,
+        certifications: mrCerts.value,
+      },
+    };
+
+    const res = await fetch("/master/export-word", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const blob = await res.blob();
+    downloadFile(blob, "MasterResume.docx");
+  };
+
+  // ================================
+  // JOB-BY-JOB ADD — /master/add-job
+  // ================================
+  document.getElementById("btn-add-job").onclick = async () => {
+    const role = jobRoleInput.value.trim();
+    const company = jobCompanyInput.value.trim();
+    const dates = jobDatesInput.value.trim();
+
+    if (!role || !dates) {
+      alert("Please enter at least a role/title and dates.");
+      return;
+    }
+
+    try {
+      const payload = {
+        role,
+        company,
+        dates,
+        existing_experience: mrExperience.value || "",
+        existing_skills: mrSkills.value || "",
+      };
+
+      const data = await postJSON("/master/add-job", payload);
+
+      const newJob = {
+        id: Date.now() + Math.random().toString(16).slice(2),
+        role: data.role || role,
+        company: data.company || company,
+        dates: data.dates || dates,
+        block: data.experience_block,
+      };
+
+      jobEntries.push(newJob);
+
+      // Merge skills from AI
+      if (data.skills) {
+        const currentSkills = (mrSkills.value || "")
+                .split(/,|\r?\n/)
+                .map((s) => s.trim())
+                .filter(Boolean);
+
+        const newSkillsRaw = Array.isArray(data.skills)
+                ? data.skills
+                : String(data.skills).split(/,|\r?\n/);
+
+        const newSkills = newSkillsRaw.map((s) => s.trim()).filter(Boolean);
+        const all = [...currentSkills, ...newSkills];
+        const unique = Array.from(new Set(all));
+        mrSkills.value = unique.join(", ");
+      }
+
+      // Clear job form
+      jobRoleInput.value = "";
+      jobCompanyInput.value = "";
+      jobDatesInput.value = "";
+
+      rebuildExperienceFromJobs();
+      renderJobPills();
+      refreshMasterPreview();
+    } catch (err) {
+      console.error(err);
+      alert("Error generating experience for this job. Check Worker logs.");
+    }
+  };
+
+  // ================================
+  // TAILOR RESUME
+  // ================================
+  const trPreviewName = document.getElementById("tr-preview-name");
+  const trPreviewContact = document.getElementById("tr-preview-contact");
+  const trPreviewSummary = document.getElementById("tr-preview-summary");
+  const trPreviewSkills = document.getElementById("tr-preview-skills");
+  const trPreviewExperience = document.getElementById("tr-preview-experience");
+  const trPreviewExtras = document.getElementById("tr-preview-extras");
+  const trMatchScoreLabel = document.getElementById("tr-match-score");
+
+  document.getElementById("tr-source").addEventListener("change", (e) => {
+    const wrapper = document.getElementById("tr-resume-wrapper");
+    if (e.target.value === "paste") {
+      wrapper.style.display = "block";
+    } else {
+      wrapper.style.display = "none";
+    }
   });
 
-  const blob = await res.blob();
-  downloadFile(blob, "MasterResume.docx");
-};
+  document.getElementById("btn-tailor-analyze").onclick = async () => {
+    // Ensure master preview and experience are current
+    rebuildExperienceFromJobs();
+    refreshMasterPreview();
 
+    const sourceType = document.getElementById("tr-source").value;
+    let masterResume;
 
-// ================================
-// TAILOR RESUME
-// ================================
-const trPreviewName = document.getElementById("tr-preview-name");
-const trPreviewContact = document.getElementById("tr-preview-contact");
-const trPreviewSummary = document.getElementById("tr-preview-summary");
-const trPreviewSkills = document.getElementById("tr-preview-skills");
-const trPreviewExperience = document.getElementById("tr-preview-experience");
-const trPreviewExtras = document.getElementById("tr-preview-extras");
-const trMatchScoreLabel = document.getElementById("tr-match-score");
+    if (sourceType === "paste") {
+      masterResume = {
+        name: mrName.value,
+        contact: mrContact.value,
+        summary: "",
+        experience: document.getElementById("tr-resume-raw").value,
+        education: "",
+        skills: "",
+        projects: "",
+      };
+    } else {
+      masterResume = {
+        name: mrName.value,
+        contact: mrContact.value,
+        summary: mrSummary.value,
+        experience: mrExperience.value,
+        education: mrEducation.value,
+        skills: mrSkills.value,
+        projects: mrProjects.value,
+      };
+    }
 
-document.getElementById("btn-tailor-analyze").onclick = async () => {
+    const payload = {
+      job_title: trJobTitle.value,
+      job_description: trJobDesc.value,
+      job_url: trJobUrl.value,
+      source_type: sourceType,
+      master_resume: masterResume,
+    };
+
+    const data = await postJSON("/tailor/analyze", payload);
+
+    trPreviewName.textContent = mrPreviewName.textContent;
+    trPreviewContact.textContent = mrPreviewContact.textContent;
+    trPreviewSummary.textContent = data.summary;
+    trPreviewSkills.textContent = data.skills;
+    trPreviewExperience.textContent = data.experience;
+    trPreviewExtras.textContent = data.extras;
+    trMatchScoreLabel.textContent = data.match_score;
+  };
+
+  // ======================================
+  // TAILOR RESUME — EXPORT TO WORD
+  // ======================================
+  document.getElementById("btn-tailor-export-word").onclick = async () => {
+    const payload = {
+      resume: {
+        name: trPreviewName.textContent,
+        contact: trPreviewContact.textContent,
+        summary: trPreviewSummary.textContent,
+        skills: trPreviewSkills.textContent,
+        experience: trPreviewExperience.textContent,
+        extras: trPreviewExtras.textContent,
+      },
+    };
+
+    const res = await fetch("/tailor/export-word", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const blob = await res.blob();
+    downloadFile(blob, "TailoredResume.docx");
+  };
+
+  // ================================
+  // ATS SCAN
+  // ================================
+  const atsResume = document.getElementById("ats-resume");
+  const atsScoreLabel = document.getElementById("ats-score-label");
+  const atsResults = document.getElementById("ats-results");
+
+  document.getElementById("btn-ats-scan").onclick = async () => {
+    const data = await postJSON("/ats/scan", {
+      resume_text: atsResume.value,
+    });
+
+    atsScoreLabel.textContent = data.score;
+
+    atsResults.innerHTML = `
+        <strong>Issues Found:</strong>
+        <ul>${data.issues.map(i => `<li>${i}</li>`).join("")}</ul>
+        <strong>Suggestions:</strong>
+        <ul>${data.suggestions.map(s => `<li>${s}</li>`).join("")}</ul>
+      `;
+  };
+
+  // ================================
+  // MATCH SCORE
+  // ================================
+  const matchResume = document.getElementById("match-resume");
+  const matchJob = document.getElementById("match-job");
+  const matchScoreLabel = document.getElementById("match-score-label");
+  const matchResults = document.getElementById("match-results");
+
+  document.getElementById("btn-match-score").onclick = async () => {
+    const payload = {
+      resume_text: matchResume.value,
+      job_description: matchJob.value,
+    };
+
+    const data = await postJSON("/match/score", payload);
+
+    matchScoreLabel.textContent = data.score;
+
+    matchResults.innerHTML = `
+        <strong>Matched Keywords:</strong>
+        <ul>${data.matched_keywords.map(k => `<li>${k}</li>`).join("")}</ul>
+
+        <strong>Missing Keywords:</strong>
+        <ul>${data.missing_keywords.map(k => `<li>${k}</li>`).join("")}</ul>
+
+        <strong>Recommendations:</strong>
+        <ul>${data.recommendations.map(r => `<li>${r}</li>`).join("")}</ul>
+      `;
+  };
+
+  // ================================
+  // INITIALIZE PREVIEW
+  // ================================
   refreshMasterPreview();
-
-  const payload = {
-    job_title: trJobTitle.value,
-    job_description: trJobDesc.value,
-    job_url: trJobUrl.value,
-    source_type: "current",
-    master_resume: {
-      name: mrName.value,
-      contact: mrContact.value,
-      summary: mrSummary.value,
-      experience: mrExperience.value,
-      education: mrEducation.value,
-      skills: mrSkills.value,
-      projects: mrProjects.value,
-    },
-  };
-
-  const data = await postJSON("/tailor/analyze", payload);
-
-  trPreviewName.textContent = mrPreviewName.textContent;
-  trPreviewContact.textContent = mrPreviewContact.textContent;
-  trPreviewSummary.textContent = data.summary;
-  trPreviewSkills.textContent = data.skills;
-  trPreviewExperience.textContent = data.experience;
-  trPreviewExtras.textContent = data.extras;
-  trMatchScoreLabel.textContent = data.match_score;
-};
-
-
-// ======================================
-// TAILOR RESUME — EXPORT TO GOOGLE DOCS
-// ======================================
-document.getElementById("btn-tailor-export-docs").onclick = async () => {
-  const payload = {
-    resume: {
-      name: trPreviewName.textContent,
-      contact: trPreviewContact.textContent,
-      summary: trPreviewSummary.textContent,
-      skills: trPreviewSkills.textContent,
-      experience: trPreviewExperience.textContent,
-      extras: trPreviewExtras.textContent,
-    },
-  };
-
-  const data = await postJSON("/tailor/export-docs", payload);
-  window.open(data.url, "_blank");
-};
-
-
-// ======================================
-// TAILOR RESUME — EXPORT TO WORD
-// ======================================
-document.getElementById("btn-tailor-export-word").onclick = async () => {
-  const payload = {
-    resume: {
-      name: trPreviewName.textContent,
-      contact: trPreviewContact.textContent,
-      summary: trPreviewSummary.textContent,
-      skills: trPreviewSkills.textContent,
-      experience: trPreviewExperience.textContent,
-      extras: trPreviewExtras.textContent,
-    },
-  };
-
-  const res = await fetch("/tailor/export-word", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  const blob = await res.blob();
-  downloadFile(blob, "TailoredResume.docx");
-};
-
-
-// ================================
-// ATS SCAN
-// ================================
-const atsResume = document.getElementById("ats-resume");
-const atsScoreLabel = document.getElementById("ats-score-label");
-const atsResults = document.getElementById("ats-results");
-
-document.getElementById("btn-ats-scan").onclick = async () => {
-  const data = await postJSON("/ats/scan", {
-    resume_text: atsResume.value,
-  });
-
-  atsScoreLabel.textContent = data.score;
-
-  atsResults.innerHTML = `
-    <strong>Issues Found:</strong>
-    <ul>${data.issues.map(i => `<li>${i}</li>`).join("")}</ul>
-    <strong>Suggestions:</strong>
-    <ul>${data.suggestions.map(s => `<li>${s}</li>`).join("")}</ul>
-  `;
-};
-
-
-// ================================
-// MATCH SCORE
-// ================================
-const matchResume = document.getElementById("match-resume");
-const matchJob = document.getElementById("match-job");
-const matchScoreLabel = document.getElementById("match-score-label");
-const matchResults = document.getElementById("match-results");
-
-document.getElementById("btn-match-score").onclick = async () => {
-  const payload = {
-    resume_text: matchResume.value,
-    job_description: matchJob.value,
-  };
-
-  const data = await postJSON("/match/score", payload);
-
-  matchScoreLabel.textContent = data.score;
-
-  matchResults.innerHTML = `
-    <strong>Matched Keywords:</strong>
-    <ul>${data.matched_keywords.map(k => `<li>${k}</li>`).join("")}</ul>
-
-    <strong>Missing Keywords:</strong>
-    <ul>${data.missing_keywords.map(k => `<li>${k}</li>`).join("")}</ul>
-
-    <strong>Recommendations:</strong>
-    <ul>${data.recommendations.map(r => `<li>${r}</li>`).join("")}</ul>
-  `;
-};
-
-
-// ================================
-// INITIALIZE PREVIEW
-// ================================
-refreshMasterPreview();
+  renderJobPills();
 </script>
 </body>
 </html>

@@ -6,46 +6,50 @@ export async function onRequestPost(context) {
   let body;
   try {
     body = await context.request.json();
-  } catch (err) {
-    return new Response("Invalid JSON in request", { status: 400 });
+  } catch {
+    return new Response("Invalid JSON", { status: 400 });
   }
 
   const input = {
-    name: body.name,
-    contact: body.contact,
-    experience: body.experience,
-    education: body.education,
-    skills: body.skills,
-    projects: body.projects
+    name: body.name || "",
+    contact: body.contact || "",
+    experience: body.experience || "",
+    education: body.education || "",
+    skills: body.skills || "",
+    certifications: body.certifications || "",
+    projects: body.projects || ""
   };
 
   const system = `
-You are an elite resume writing engine.
+You are a professional resume editor.
 
-RULES:
+RULES (CRITICAL):
 - Output ONLY valid JSON.
-- DO NOT wrap JSON in markdown fences.
-- Fix and standardize the contact line:
-  * Proper city/state capitalization
-  * Format: City, ST • email • phone
-  * Normalize phone numbers to (XXX) XXX-XXXX
-- Rewrite ALL experience into:
-  * Job Title — Company (Location • Dates)
-  * 2–6 strong achievement bullets per role
-  * Use metrics or outcomes whenever possible
-- Validate and fix education formatting.
-- Expand skills list using hidden skills + experience.
-- Create a professional summary using all sections.
+- DO NOT use markdown.
+- DO NOT invent experience, skills, or credentials.
+- DO NOT rewrite job bullets or add roles.
+- Improve clarity, grammar, and consistency only.
+
+TASKS:
+- Lightly polish the professional summary.
+- Ensure skills are concise and non-duplicated.
+- Ensure education and certifications are clearly formatted.
+- Preserve all experience exactly as provided.
 `;
 
   const user = `
-MASTER RESUME RAW INPUT:
+MASTER RESUME INPUT (ALREADY VERIFIED):
 
-Name: ${input.name}
+Name:
+${input.name}
 
-Contact: ${input.contact}
+Contact Line:
+${input.contact}
 
-Experience:
+Professional Summary:
+${body.summary || ""}
+
+Experience (DO NOT CHANGE CONTENT):
 ${input.experience}
 
 Education:
@@ -54,14 +58,16 @@ ${input.education}
 Skills:
 ${input.skills}
 
-Projects:
+Certifications & Awards:
+${input.certifications}
+
+Projects & Achievements:
 ${input.projects}
 
 Return JSON with keys:
-contact, summary, experience, education, skills, projects
+summary, education, skills, certifications, projects
 `;
 
-  // === CALL GROQ ===
   const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -74,28 +80,20 @@ contact, summary, experience, education, skills, projects
         { role: "system", content: system },
         { role: "user", content: user }
       ],
-      temperature: 0.4
+      temperature: 0.3
     })
   });
 
   const data = await resp.json();
+  let raw = data?.choices?.[0]?.message?.content || "";
 
-  let raw = data.choices?.[0]?.message?.content || "";
-
-  // === CLEAN AI RESPONSE (fixes your crash) ===
-  raw = raw
-    .replace(/```json/gi, "")
-    .replace(/```/g, "")
-    .trim();
+  raw = raw.replace(/```json|```/gi, "").trim();
 
   let parsed;
-
   try {
     parsed = JSON.parse(raw);
-  } catch (err) {
-    return new Response("AI returned invalid JSON:\n\n" + raw, {
-      status: 500
-    });
+  } catch {
+    return new Response("Invalid AI JSON:\n\n" + raw, { status: 500 });
   }
 
   return Response.json(parsed);
