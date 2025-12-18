@@ -1,14 +1,29 @@
-import {
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  HeadingLevel
-} from "docx";
+import JSZip from "jszip";
 
-export async function onRequestPost(context) {
-  const { request } = context;
+/**
+ * Minimal XML escaping for Word
+ */
+function escapeXml(str = "") {
+  return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+}
 
+/**
+ * Create a Word paragraph
+ */
+function paragraph(text) {
+  return `
+    <w:p>
+      <w:r>
+        <w:t>${escapeXml(text)}</w:t>
+      </w:r>
+    </w:p>
+  `;
+}
+
+export async function onRequestPost({ request }) {
   let body;
   try {
     body = await request.json();
@@ -34,116 +49,45 @@ export async function onRequestPost(context) {
     );
   }
 
-  function parseBullets(text) {
-    return text
-        .split("\n")
-        .map(l => l.trim())
-        .filter(l => l.startsWith("•"))
-        .map(l => l.replace(/^•\s*/, ""));
-  }
+  // Build document body
+  const bodyXml = `
+    ${paragraph(name)}
+    ${paragraph(contact)}
 
-  function section(title) {
-    return new Paragraph({
-      text: title,
-      heading: HeadingLevel.HEADING_2,
-      spacing: { before: 300, after: 120 }
-    });
-  }
+    ${summary ? paragraph("Profile") + paragraph(summary) : ""}
 
-  const doc = new Document({
-    sections: [
-      {
-        children: [
-          // Name
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: name,
-                bold: true,
-                size: 32
-              })
-            ],
-            spacing: { after: 100 }
-          }),
+    ${skills ? paragraph("Key Skills") + paragraph(skills) : ""}
 
-          // Contact
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: contact,
-                italics: true,
-                size: 22
-              })
-            ],
-            spacing: { after: 300 }
-          }),
+    ${paragraph("Relevant Experience")}
+    ${experience
+      .split("\n")
+      .map(line => line.trim())
+      .filter(Boolean)
+      .map(paragraph)
+      .join("")}
 
-          // Profile Summary
-          summary
-              ? section("Profile")
-              : null,
+    ${extras ? paragraph("Additional Notes") + paragraph(extras) : ""}
+  `;
 
-          summary
-              ? new Paragraph({
-                text: summary,
-                spacing: { after: 200 }
-              })
-              : null,
+  const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    ${bodyXml}
+  </w:body>
+</w:document>`;
 
-          // Skills
-          skills
-              ? section("Key Skills")
-              : null,
+  const contentTypesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Override PartName="/word/document.xml"
+    ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`;
 
-          skills
-              ? new Paragraph({
-                text: skills
-              })
-              : null,
+  const zip = new JSZip();
 
-          // Experience
-          section("Relevant Experience"),
+  zip.file("[Content_Types].xml", contentTypesXml);
+  zip.folder("word").file("document.xml", documentXml);
 
-          ...experience.split("\n\n").flatMap(block => {
-            const lines = block.split("\n").map(l => l.trim());
-            if (!lines.length) return [];
-
-            const header = lines[0];
-            const bullets = parseBullets(block);
-
-            return [
-              new Paragraph({
-                text: header,
-                bold: true,
-                spacing: { before: 200 }
-              }),
-
-              ...bullets.map(
-                  bullet =>
-                      new Paragraph({
-                        text: bullet,
-                        bullet: { level: 0 }
-                      })
-              )
-            ];
-          }),
-
-          // Extras (optional suggestions)
-          extras
-              ? section("Additional Notes")
-              : null,
-
-          extras
-              ? new Paragraph({
-                text: extras
-              })
-              : null
-        ].filter(Boolean)
-      }
-    ]
-  });
-
-  const buffer = await Packer.toBuffer(doc);
+  const buffer = await zip.generateAsync({ type: "uint8array" });
 
   return new Response(buffer, {
     status: 200,
