@@ -1,5 +1,6 @@
 name = "sufferwellblog"
 compatibility_date = "2024-04-01"
+compatibility_flags = ["nodejs_compat"]
 
 [vars]
 GROQ_API_KEY = ""
