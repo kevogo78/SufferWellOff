@@ -18,6 +18,7 @@
   "homepage": "https://github.com/kevogo78/SufferWellOff#readme",
   "description": "",
   "dependencies": {
+    "jszip": "^3.10.1",
     "jzip": "^1.0.0"
   }
 }
