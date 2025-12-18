@@ -16,8 +16,5 @@
     "url": "https://github.com/kevogo78/SufferWellOff/issues"
   },
   "homepage": "https://github.com/kevogo78/SufferWellOff#readme",
-  "description": "",
-  "dependencies": {
-    "docx": "^9.5.1"
-  }
+  "description": ""
 }
