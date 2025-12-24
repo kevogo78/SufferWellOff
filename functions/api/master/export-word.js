@@ -42,7 +42,7 @@ export async function onRequestPost({ request }) {
     );
   }
 
-  const body = `
+  const documentBody = `
     ${paragraph(name)}
     ${paragraph(contact)}
     ${summary ? paragraph("Professional Summary") + paragraph(summary) : ""}
@@ -56,7 +56,7 @@ export async function onRequestPost({ request }) {
 
   const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-  <w:body>${body}</w:body>
+  <w:body>${documentBody}</w:body>
 </w:document>`;
 
   const zip = new JSZip();
