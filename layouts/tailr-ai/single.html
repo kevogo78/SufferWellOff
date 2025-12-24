@@ -1311,7 +1311,22 @@
   // ========================
   // HELPER FUNCTIONS
   // ========================
-  async function postJSON(url, data) {
+  const DEBUG = new URLSearchParams(window.location.search).has("debug");
+  const API_BASE = "/api";
+
+  function debugLog(...args) {
+    if (DEBUG) {
+      console.log(...args);
+    }
+  }
+
+  function apiUrl(path) {
+    return `${API_BASE}${path}`;
+  }
+
+  async function postJSON(path, data) {
+    const url = apiUrl(path);
+    debugLog("POST", url, data);
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1319,18 +1334,22 @@
     });
 
     const contentType = res.headers.get("Content-Type") || "";
-
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`HTTP ${res.status}: ${errText}`);
-    }
+    let payload;
 
     if (contentType.includes("application/json")) {
-      return res.json();
+      payload = await res.json();
+    } else {
+      payload = { error: await res.text() };
     }
 
-    // fallback to text (prevents JSON parse crash)
-    return { error: await res.text() };
+    if (!res.ok) {
+      const err = new Error(payload?.error || `HTTP ${res.status}`);
+      err.status = res.status;
+      err.payload = payload;
+      throw err;
+    }
+
+    return payload;
   }
 
   function downloadFile(blob, filename) {
@@ -1344,6 +1363,44 @@
     URL.revokeObjectURL(url);
   }
 
+  function showError(message, err) {
+    console.error(err);
+    const details =
+            err?.payload ? JSON.stringify(err.payload, null, 2) : err?.message;
+    const alertMessage = err?.message ? `${message}\n\n${err.message}` : message;
+    alert(alertMessage);
+    if (details) {
+      if (navigator.clipboard?.writeText) {
+        if (confirm("Copy error details to clipboard?")) {
+          navigator.clipboard.writeText(details);
+        }
+      } else {
+        window.prompt("Copy error details:", details);
+      }
+    }
+  }
+
+  function renderResultsList(container, sections) {
+    container.innerHTML = "";
+
+    sections.forEach((section) => {
+      const title = document.createElement("strong");
+      title.textContent = `${section.title}:`;
+      container.appendChild(title);
+
+      const list = document.createElement("ul");
+      list.className = "results-list";
+
+      (section.items || []).forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        list.appendChild(li);
+      });
+
+      container.appendChild(list);
+    });
+  }
+
   function normalizePhone(phone) {
     const digits = (phone || "").replace(/\D/g, "");
     if (digits.length === 10) {
@@ -1352,8 +1409,31 @@
     return phone || "";
   }
 
+  function toTitleCase(value) {
+    return value
+            .toLowerCase()
+            .split(/\s+/)
+            .filter(Boolean)
+            .map((word) => word[0].toUpperCase() + word.slice(1))
+            .join(" ");
+  }
+
+  function normalizeCity(city) {
+    const cleaned = (city || "").trim();
+    if (!cleaned) return "";
+    const normalized = cleaned.toLowerCase();
+    const cityAliases = {
+      atl: "Atlanta",
+      nyc: "New York",
+      la: "Los Angeles",
+      sf: "San Francisco",
+      dc: "Washington",
+    };
+    return cityAliases[normalized] || toTitleCase(cleaned);
+  }
+
   function buildContactLine() {
-    const city = (mrCity.value || "").trim();
+    const city = normalizeCity(mrCity.value || "");
     const state = (mrState.value || "").trim().toUpperCase();
     const email = (mrEmail.value || "").trim();
     const phone = normalizePhone(mrPhone.value || "");
@@ -1455,7 +1535,10 @@
       pill.style.cursor = "default";
 
       const label = document.createElement("span");
-      label.innerHTML = `<strong>${job.role}</strong> — ${job.dates}`;
+      const strong = document.createElement("strong");
+      strong.textContent = job.role;
+      label.appendChild(strong);
+      label.appendChild(document.createTextNode(` — ${job.dates}`));
 
       const removeBtn = document.createElement("button");
       removeBtn.type = "button";
@@ -1563,66 +1646,76 @@
 
       refreshMasterPreview();
     } catch (err) {
-      console.error(err);
-      alert("Error generating with AI. Check Worker logs.");
+      showError("Error generating with AI.", err);
     }
   };
 
   // ================================
   // MASTER RESUME — SUMMARY FROM INFO
   // ================================
-  document.getElementById("btn-generate-summary").onclick = async () => {
-    try {
-      rebuildExperienceFromJobs();
-      syncContactLine();
+  const summaryButton = document.getElementById("btn-generate-summary");
+  if (summaryButton) {
+    summaryButton.onclick = async () => {
+      try {
+        rebuildExperienceFromJobs();
+        syncContactLine();
 
-      const payload = {
-        contact: mrContact.value,
-        experience: mrExperience.value,
-        education: mrEducation.value,
-        skills: mrSkills.value,
-        projects: mrProjects.value,
-        certifications: mrCerts.value,
-      };
+        const payload = {
+          contact: mrContact.value,
+          experience: mrExperience.value,
+          education: mrEducation.value,
+          skills: mrSkills.value,
+          projects: mrProjects.value,
+          certifications: mrCerts.value,
+        };
 
-      const data = await postJSON("/master/summary", payload);
+        const data = await postJSON("/master/summary", payload);
 
-      mrSummary.value = data.summary;
-      refreshMasterPreview();
-    } catch (err) {
-      console.error(err);
-      alert("Error generating summary. Check Worker logs.");
-    }
-  };
+        mrSummary.value = data.summary;
+        refreshMasterPreview();
+      } catch (err) {
+        showError("Error generating summary.", err);
+      }
+    };
+  }
 
   // ================================
   // MASTER RESUME — EXPORT TO WORD
   // ================================
   document.getElementById("btn-master-export-word").onclick = async () => {
-    rebuildExperienceFromJobs();
-    syncContactLine();
+    try {
+      rebuildExperienceFromJobs();
+      syncContactLine();
 
-    const payload = {
-      resume: {
-        name: mrName.value,
-        contact: mrContact.value,
-        summary: mrSummary.value,
-        experience: mrExperience.value,
-        education: mrEducation.value,
-        skills: mrSkills.value,
-        projects: mrProjects.value,
-        certifications: mrCerts.value,
-      },
-    };
+      const payload = {
+        resume: {
+          name: mrName.value,
+          contact: mrContact.value,
+          summary: mrSummary.value,
+          experience: mrExperience.value,
+          education: mrEducation.value,
+          skills: mrSkills.value,
+          projects: mrProjects.value,
+          certifications: mrCerts.value,
+        },
+      };
 
-    const res = await fetch("/master/export-word", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      const res = await fetch(apiUrl("/master/export-word"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    const blob = await res.blob();
-    downloadFile(blob, "MasterResume.docx");
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `HTTP ${res.status}`);
+      }
+
+      const blob = await res.blob();
+      downloadFile(blob, "MasterResume.docx");
+    } catch (err) {
+      showError("Error exporting master resume.", err);
+    }
   };
 
   // ================================
@@ -1685,8 +1778,7 @@
       renderJobPills();
       refreshMasterPreview();
     } catch (err) {
-      console.error(err);
-      alert("Error generating experience for this job. Check Worker logs.");
+      showError("Error generating experience for this job.", err);
     }
   };
 
@@ -1748,40 +1840,53 @@
       master_resume: masterResume,
     };
 
-    const data = await postJSON("/tailor/analyze", payload);
+    try {
+      const data = await postJSON("/tailor/analyze", payload);
 
-    trPreviewName.textContent = mrPreviewName.textContent;
-    trPreviewContact.textContent = mrPreviewContact.textContent;
-    trPreviewSummary.textContent = data.summary;
-    trPreviewSkills.textContent = data.skills;
-    trPreviewExperience.textContent = data.experience;
-    trPreviewExtras.textContent = data.extras;
-    trMatchScoreLabel.textContent = data.match_score;
+      trPreviewName.textContent = mrPreviewName.textContent;
+      trPreviewContact.textContent = mrPreviewContact.textContent;
+      trPreviewSummary.textContent = data.summary;
+      trPreviewSkills.textContent = data.skills;
+      trPreviewExperience.textContent = data.experience;
+      trPreviewExtras.textContent = data.extras;
+      trMatchScoreLabel.textContent = data.match_score;
+    } catch (err) {
+      showError("Error tailoring resume.", err);
+    }
   };
 
   // ======================================
   // TAILOR RESUME — EXPORT TO WORD
   // ======================================
   document.getElementById("btn-tailor-export-word").onclick = async () => {
-    const payload = {
-      resume: {
-        name: trPreviewName.textContent,
-        contact: trPreviewContact.textContent,
-        summary: trPreviewSummary.textContent,
-        skills: trPreviewSkills.textContent,
-        experience: trPreviewExperience.textContent,
-        extras: trPreviewExtras.textContent,
-      },
-    };
+    try {
+      const payload = {
+        resume: {
+          name: trPreviewName.textContent,
+          contact: trPreviewContact.textContent,
+          summary: trPreviewSummary.textContent,
+          skills: trPreviewSkills.textContent,
+          experience: trPreviewExperience.textContent,
+          extras: trPreviewExtras.textContent,
+        },
+      };
 
-    const res = await fetch("/tailor/export-word", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      const res = await fetch(apiUrl("/tailor/export-word"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    const blob = await res.blob();
-    downloadFile(blob, "TailoredResume.docx");
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `HTTP ${res.status}`);
+      }
+
+      const blob = await res.blob();
+      downloadFile(blob, "TailoredResume.docx");
+    } catch (err) {
+      showError("Error exporting tailored resume.", err);
+    }
   };
 
   // ================================
@@ -1792,18 +1897,19 @@
   const atsResults = document.getElementById("ats-results");
 
   document.getElementById("btn-ats-scan").onclick = async () => {
-    const data = await postJSON("/ats/scan", {
-      resume_text: atsResume.value,
-    });
+    try {
+      const data = await postJSON("/ats/scan", {
+        resume_text: atsResume.value,
+      });
 
-    atsScoreLabel.textContent = data.score;
-
-    atsResults.innerHTML = `
-        <strong>Issues Found:</strong>
-        <ul>${data.issues.map(i => `<li>${i}</li>`).join("")}</ul>
-        <strong>Suggestions:</strong>
-        <ul>${data.suggestions.map(s => `<li>${s}</li>`).join("")}</ul>
-      `;
+      atsScoreLabel.textContent = data.score;
+      renderResultsList(atsResults, [
+        { title: "Issues Found", items: data.issues || [] },
+        { title: "Suggestions", items: data.suggestions || [] },
+      ]);
+    } catch (err) {
+      showError("Error running ATS scan.", err);
+    }
   };
 
   // ================================
@@ -1820,20 +1926,18 @@
       job_description: matchJob.value,
     };
 
-    const data = await postJSON("/match/score", payload);
+    try {
+      const data = await postJSON("/match/score", payload);
 
-    matchScoreLabel.textContent = data.score;
-
-    matchResults.innerHTML = `
-        <strong>Matched Keywords:</strong>
-        <ul>${data.matched_keywords.map(k => `<li>${k}</li>`).join("")}</ul>
-
-        <strong>Missing Keywords:</strong>
-        <ul>${data.missing_keywords.map(k => `<li>${k}</li>`).join("")}</ul>
-
-        <strong>Recommendations:</strong>
-        <ul>${data.recommendations.map(r => `<li>${r}</li>`).join("")}</ul>
-      `;
+      matchScoreLabel.textContent = data.score;
+      renderResultsList(matchResults, [
+        { title: "Matched Keywords", items: data.matched_keywords || [] },
+        { title: "Missing Keywords", items: data.missing_keywords || [] },
+        { title: "Recommendations", items: data.recommendations || [] },
+      ]);
+    } catch (err) {
+      showError("Error calculating match score.", err);
+    }
   };
 
   // ================================

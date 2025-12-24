@@ -12,7 +12,17 @@ function escapeXml(str = "") {
 }
 
 export async function onRequestPost({ request }) {
-  const { resume } = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return new Response(
+      JSON.stringify({ error: "Invalid JSON body" }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  const { resume } = body || {};
 
   const {
     name = "",
@@ -24,6 +34,13 @@ export async function onRequestPost({ request }) {
     certifications = "",
     projects = ""
   } = resume;
+
+  if (!name || !experience) {
+    return new Response(
+      JSON.stringify({ error: "Missing required resume fields" }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
+  }
 
   const body = `
     ${paragraph(name)}

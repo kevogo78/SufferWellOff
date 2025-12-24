@@ -1,11 +1,15 @@
 export async function onRequestPost(context) {
-  const { request } = context;
+  const { request, env } = context;
+  const debug = env?.DEBUG === "true";
 
   let body;
   try {
     body = await request.json();
   } catch {
-    return new Response("Invalid JSON body", { status: 400 });
+    return new Response(
+      JSON.stringify({ error: "Invalid JSON body" }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
   }
 
   const resumeText = (body.resume_text || "").toLowerCase();
@@ -17,6 +21,13 @@ export async function onRequestPost(context) {
       matched_keywords: [],
       missing_keywords: [],
       recommendations: ["Provide both resume and job description text"]
+    });
+  }
+
+  if (debug) {
+    console.log("match/score request", {
+      resumeLength: resumeText.length,
+      jobLength: jobText.length
     });
   }
 

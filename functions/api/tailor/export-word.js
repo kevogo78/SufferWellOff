@@ -28,7 +28,10 @@ export async function onRequestPost({ request }) {
   try {
     body = await request.json();
   } catch {
-    return new Response("Invalid JSON body", { status: 400 });
+    return new Response(
+        JSON.stringify({ error: "Invalid JSON body" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+    );
   }
 
   const resume = body.resume || {};
@@ -44,8 +47,8 @@ export async function onRequestPost({ request }) {
 
   if (!name || !experience) {
     return new Response(
-        "Missing required resume fields (name or experience)",
-        { status: 400 }
+        JSON.stringify({ error: "Missing required resume fields (name or experience)" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
 

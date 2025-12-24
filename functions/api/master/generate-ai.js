@@ -1,13 +1,31 @@
 const MODEL = "llama-3.3-70b-versatile";
 
+function jsonResponse(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json" }
+  });
+}
+
+function errorResponse(message, status = 400, details = undefined) {
+  return jsonResponse(
+    {
+      error: message,
+      ...(details ? { details } : {})
+    },
+    status
+  );
+}
+
 export async function onRequestPost(context) {
   const env = context.env;
+  const debug = env.DEBUG === "true";
 
   let body;
   try {
     body = await context.request.json();
   } catch {
-    return new Response("Invalid JSON", { status: 400 });
+    return errorResponse("Invalid JSON body", 400);
   }
 
   const input = {
@@ -20,6 +38,18 @@ export async function onRequestPost(context) {
     projects: body.projects || ""
   };
 
+  if (!env.GROQ_API_KEY) {
+    return errorResponse("Missing GROQ_API_KEY", 500);
+  }
+
+  if (debug) {
+    console.log("master/generate-ai request", {
+      name: input.name,
+      hasSummary: Boolean(body.summary),
+      experienceLength: input.experience.length
+    });
+  }
+
   const system = `
 You are a professional resume editor.
 
@@ -27,14 +57,16 @@ RULES (CRITICAL):
 - Output ONLY valid JSON.
 - DO NOT use markdown.
 - DO NOT invent experience, skills, or credentials.
-- DO NOT rewrite job bullets or add roles.
-- Improve clarity, grammar, and consistency only.
+- Do NOT add roles or a "Target Role" section.
+- Preserve factual content while improving clarity, grammar, and consistency.
+- If experience is not already in bullet format, convert to bullets without adding new facts.
 
 TASKS:
-- Lightly polish the professional summary.
-- Ensure skills are concise and non-duplicated.
-- Ensure education and certifications are clearly formatted.
-- Preserve all experience exactly as provided.
+- Create or refine the professional summary based on experience, skills,
+  education, certifications, and projects.
+- Ensure skills are concise, standardized, and non-duplicated.
+- Spell-check and standardize education and certifications.
+- Normalize project titles for consistency.
 `;
 
   const user = `
@@ -49,7 +81,7 @@ ${input.contact}
 Professional Summary:
 ${body.summary || ""}
 
-Experience (DO NOT CHANGE CONTENT):
+Experience (preserve content; format for readability only):
 ${input.experience}
 
 Education:
@@ -84,7 +116,17 @@ summary, education, skills, certifications, projects
     })
   });
 
-  const data = await resp.json();
+  if (!resp.ok) {
+    const text = await resp.text();
+    return errorResponse("Groq API error", resp.status, text);
+  }
+
+  let data;
+  try {
+    data = await resp.json();
+  } catch (err) {
+    return errorResponse("Invalid Groq response", 500, err.message);
+  }
   let raw = data?.choices?.[0]?.message?.content || "";
 
   raw = raw.replace(/```json|```/gi, "").trim();
@@ -93,8 +135,8 @@ summary, education, skills, certifications, projects
   try {
     parsed = JSON.parse(raw);
   } catch {
-    return new Response("Invalid AI JSON:\n\n" + raw, { status: 500 });
+    return errorResponse("Invalid AI JSON", 500, raw);
   }
 
-  return Response.json(parsed);
+  return jsonResponse(parsed);
 }
