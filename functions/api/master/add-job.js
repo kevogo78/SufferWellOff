@@ -1,6 +1,27 @@
 const MODEL = "llama-3.3-70b-versatile";
 
+function jsonResponse(data, status = 200) {
+    return new Response(JSON.stringify(data), {
+        status,
+        headers: { "Content-Type": "application/json" }
+    });
+}
+
+function errorResponse(message, status = 400, details = undefined) {
+    return jsonResponse(
+        {
+            error: message,
+            ...(details ? { details } : {})
+        },
+        status
+    );
+}
+
 async function callGroq(env, messages) {
+    if (!env.GROQ_API_KEY) {
+        throw new Error("Missing GROQ_API_KEY");
+    }
+
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -19,18 +40,24 @@ async function callGroq(env, messages) {
         throw new Error(`Groq API error ${res.status}: ${text}`);
     }
 
-    const json = await res.json();
+    let json;
+    try {
+        json = await res.json();
+    } catch (err) {
+        throw new Error(`Groq API invalid JSON: ${err.message}`);
+    }
     return json.choices[0].message.content;
 }
 
 export async function onRequestPost(context) {
     const { request, env } = context;
+    const debug = env.DEBUG === "true";
 
     let body;
     try {
         body = await request.json();
     } catch {
-        return new Response("Invalid JSON body", { status: 400 });
+        return errorResponse("Invalid JSON body", 400);
     }
 
     const {
@@ -42,8 +69,14 @@ export async function onRequestPost(context) {
     } = body;
 
     if (!role || !dates) {
-        return new Response("Missing required fields: role and dates", {
-            status: 400
+        return errorResponse("Missing required fields: role and dates", 400);
+    }
+
+    if (debug) {
+        console.log("master/add-job request", {
+            role,
+            company,
+            dates
         });
     }
 
@@ -59,6 +92,8 @@ CRITICAL RULES:
 - Bullets must be achievement-focused, not task lists.
 - Bullets should be realistic for the role and level.
 - Use metrics where reasonable, but do not fabricate numbers.
+- Do NOT add a target role section or header.
+- Return resume-ready language with action verbs.
 
 FORMAT REQUIREMENTS:
 - Experience block must be multi-line plain text.
@@ -102,10 +137,7 @@ ${existing_skills || "(none)"}
         try {
             parsed = JSON.parse(cleaned);
         } catch {
-            return new Response(
-                "AI returned invalid JSON:\n\n" + cleaned,
-                { status: 500 }
-            );
+            return errorResponse("AI returned invalid JSON", 500, cleaned);
         }
 
         // Final sanity check
@@ -114,20 +146,12 @@ ${existing_skills || "(none)"}
             !Array.isArray(parsed.skills) ||
             parsed.skills.length === 0
         ) {
-            return new Response(
-                "AI response missing required fields",
-                { status: 500 }
-            );
+            return errorResponse("AI response missing required fields", 500);
         }
 
-        return new Response(JSON.stringify(parsed), {
-            status: 200,
-            headers: { "Content-Type": "application/json" }
-        });
+        return jsonResponse(parsed);
     } catch (err) {
         console.error(err);
-        return new Response(`Error generating job: ${err.message}`, {
-            status: 500
-        });
+        return errorResponse("Error generating job", 500, err.message);
     }
 }

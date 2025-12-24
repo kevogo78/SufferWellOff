@@ -1,11 +1,15 @@
 export async function onRequestPost(context) {
-  const { request } = context;
+  const { request, env } = context;
+  const debug = env?.DEBUG === "true";
 
   let body;
   try {
     body = await request.json();
   } catch {
-    return new Response("Invalid JSON body", { status: 400 });
+    return new Response(
+      JSON.stringify({ error: "Invalid JSON body" }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
   }
 
   const resumeText = (body.resume_text || "").trim();
@@ -16,6 +20,10 @@ export async function onRequestPost(context) {
       issues: ["No resume text provided"],
       suggestions: ["Paste resume text to run ATS scan"]
     });
+  }
+
+  if (debug) {
+    console.log("ats/scan request", { length: resumeText.length });
   }
 
   const issues = [];

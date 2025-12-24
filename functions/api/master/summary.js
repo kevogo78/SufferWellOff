@@ -1,6 +1,27 @@
 const MODEL = "llama-3.3-70b-versatile";
 
+function jsonResponse(data, status = 200) {
+    return new Response(JSON.stringify(data), {
+        status,
+        headers: { "Content-Type": "application/json" }
+    });
+}
+
+function errorResponse(message, status = 400, details = undefined) {
+    return jsonResponse(
+        {
+            error: message,
+            ...(details ? { details } : {})
+        },
+        status
+    );
+}
+
 async function callGroq(env, messages) {
+    if (!env.GROQ_API_KEY) {
+        throw new Error("Missing GROQ_API_KEY");
+    }
+
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -19,18 +40,24 @@ async function callGroq(env, messages) {
         throw new Error(`Groq API error ${res.status}: ${text}`);
     }
 
-    const json = await res.json();
+    let json;
+    try {
+        json = await res.json();
+    } catch (err) {
+        throw new Error(`Groq API invalid JSON: ${err.message}`);
+    }
     return json.choices[0].message.content;
 }
 
 export async function onRequestPost(context) {
     const { request, env } = context;
+    const debug = env.DEBUG === "true";
 
     let body;
     try {
         body = await request.json();
     } catch {
-        return new Response("Invalid JSON body", { status: 400 });
+        return errorResponse("Invalid JSON body", 400);
     }
 
     const {
@@ -44,13 +71,16 @@ export async function onRequestPost(context) {
 
     // Minimal guard: no experience = no summary
     if (!experience.trim()) {
-        return new Response(
-            JSON.stringify({
-                summary:
-                    "Professional summary will be generated once experience information is provided."
-            }),
-            { status: 200, headers: { "Content-Type": "application/json" } }
-        );
+        return jsonResponse({
+            summary:
+                "Professional summary will be generated once experience information is provided."
+        });
+    }
+
+    if (debug) {
+        console.log("master/summary request", {
+            hasExperience: Boolean(experience.trim())
+        });
     }
 
     const system = `
@@ -65,6 +95,7 @@ CRITICAL RULES:
 - Write in third person, professional tone.
 - Focus on strengths, impact, and direction.
 - Use only information that is clearly implied by the input.
+- Do NOT add a "Target Role" line.
 
 OUTPUT FORMAT:
 
@@ -107,10 +138,7 @@ ${projects}
         try {
             parsed = JSON.parse(cleaned);
         } catch {
-            return new Response(
-                "AI returned invalid JSON:\n\n" + cleaned,
-                { status: 500 }
-            );
+            return errorResponse("AI returned invalid JSON", 500, cleaned);
         }
 
         if (
@@ -118,20 +146,12 @@ ${projects}
             typeof parsed.summary !== "string" ||
             parsed.summary.split(".").length < 2
         ) {
-            return new Response(
-                "AI returned an invalid or incomplete summary",
-                { status: 500 }
-            );
+            return errorResponse("AI returned an invalid or incomplete summary", 500);
         }
 
-        return new Response(JSON.stringify(parsed), {
-            status: 200,
-            headers: { "Content-Type": "application/json" }
-        });
+        return jsonResponse(parsed);
     } catch (err) {
         console.error(err);
-        return new Response(`Error generating summary: ${err.message}`, {
-            status: 500
-        });
+        return errorResponse("Error generating summary", 500, err.message);
     }
 }
