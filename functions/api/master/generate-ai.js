@@ -17,15 +17,15 @@ function errorResponse(message, status = 400, details = undefined) {
   );
 }
 
-export async function onRequestPost(context) {
-  const env = context.env;
-  const debug = env.DEBUG === "true";
-
-  let body;
-  try {
-    body = await context.request.json();
-  } catch {
-    return errorResponse("Invalid JSON body", 400);
+export async function onRequestPost({ env, request }) {
+  if (!env || !env.GROQ_API_KEY) {
+    return new Response(
+      JSON.stringify({
+        error: "Missing GROQ_API_KEY",
+        envKeys: env ? Object.keys(env) : null
+      }),
+      { status: 500 }
+    );
   }
 
   const input = {
